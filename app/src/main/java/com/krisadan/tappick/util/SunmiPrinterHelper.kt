@@ -1,0 +1,88 @@
+package com.krisadan.tappick.util
+
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
+import android.os.IBinder
+import android.util.Log
+import woyou.aidlservice.jiuiv5.IWoyouService
+import woyou.aidlservice.jiuiv5.ICallback
+
+class SunmiPrinterHelper private constructor(private val context: Context) {
+    private var woyouService: IWoyouService? = null
+
+    companion object {
+        @Volatile
+        private var INSTANCE: SunmiPrinterHelper? = null
+
+        fun getInstance(context: Context): SunmiPrinterHelper {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: SunmiPrinterHelper(context.applicationContext).also { INSTANCE = it }
+            }
+        }
+    }
+
+    init {
+        bindService()
+    }
+
+    private fun bindService() {
+        val intent = Intent()
+        intent.setPackage("com.sunmi.extprinterservice")
+        intent.action = "com.sunmi.extprinterservice.PrinterService"
+        
+        val connection = object : ServiceConnection {
+            override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+                woyouService = IWoyouService.Stub.asInterface(service)
+                Log.d("SunmiPrinter", "Service Connected")
+            }
+
+            override fun onServiceDisconnected(name: ComponentName?) {
+                woyouService = null
+                Log.d("SunmiPrinter", "Service Disconnected")
+            }
+        }
+        
+        context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
+    }
+
+    /**
+     * สั่งพิมพ์ข้อความ
+     */
+    fun printText(text: String) {
+        try {
+            woyouService?.printText(text, object : ICallback.Stub() {
+                override fun onRunResult(isSuccess: Boolean, code: Int, msg: String?) {
+                    Log.d("SunmiPrinter", "Print Result: $isSuccess, Code: $code")
+                }
+            })
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        Log.d("SunmiPrinter", "Command Sent: $text")
+    }
+    
+    /**
+     * สั่งเลื่อนกระดาษตามจำนวนบรรทัด
+     */
+    fun lineWrap(lines: Int) {
+        try {
+            woyouService?.lineWrap(lines, null)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    /**
+     * สั่งตัดกระดาษ (สำหรับรุ่นที่มีใบมีด) หรือเลื่อนกระดาษเพื่อให้ฉีกง่าย
+     */
+    fun cutPaper() {
+        try {
+            // สำหรับ V2s ที่ไม่มีใบมีดอัตโนมัติ คำสั่งนี้จะช่วยเลื่อนกระดาษมาในจุดที่ฉีกได้พอดี
+            woyouService?.cutPaper(null)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+}

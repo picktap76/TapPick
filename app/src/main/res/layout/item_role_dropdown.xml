@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="12dp"
+    android:descendantFocusability="blocksDescendants">
+
+    <TextView
+        android:id="@+id/tvRoleName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="พนักงาน"
+        android:textColor="@color/text_title"
+        android:textSize="16sp"
+        android:focusable="false"
+        android:clickable="false" />
+
+    <ImageView
+        android:id="@+id/ivCheck"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginEnd="8dp"
+        android:src="@drawable/ic_check"
+        app:tint="@color/primary_blue"
+        android:visibility="gone"
+        android:focusable="false"
+        android:clickable="false" />
+
+    <ImageButton
+        android:id="@+id/btnEditRole"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginEnd="4dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_edit"
+        app:tint="@color/primary_blue"
+        android:visibility="gone"
+        android:focusable="false"
+        android:focusableInTouchMode="false" />
+
+    <ImageButton
+        android:id="@+id/btnDeleteRole"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_delete"
+        app:tint="@color/text_red"
+        android:visibility="gone"
+        android:focusable="false"
+        android:focusableInTouchMode="false" />
+
+</LinearLayout>
