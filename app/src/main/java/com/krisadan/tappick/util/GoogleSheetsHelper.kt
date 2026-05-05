@@ -14,7 +14,7 @@ import java.util.Locale
 
 object GoogleSheetsHelper {
     private const val TAG = "GoogleSheetsHelper"
-    private const val WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwpvpPBKV6DunfQKGfNwiF6yNvZXjsdKQ5jJ1aaIeo2tHXY9VEzLIlSaxHP0iNZrf9V/exec"
+    private const val WEB_APP_URL = "https://script.google.com/macros/s/AKfycby-nHfeVO7DSfhb9HP_KVrPhrrJzSIh4cj_E4C5opMduORateuI7Pt_xB4JsoBUxxJq/exec"
     
     private val client = OkHttpClient.Builder()
         .followRedirects(true)
