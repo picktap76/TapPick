@@ -82,9 +82,6 @@ class MembersActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         setContentView(binding.root)
         
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
-        if (nfcAdapter == null) {
-            ToastHelper.showToast(this, "เครื่องนี้ไม่รองรับ NFC")
-        }
         
         memberRepository = MemberRepository.getInstance(this)
         roleRepository = RoleRepository.getInstance(this)
@@ -268,6 +265,10 @@ class MembersActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
             sheetBinding.llMemberForm.visibility = View.GONE
             sheetBinding.llScanNfc.visibility = View.VISIBLE
             isWaitingForNfc = true
+
+            if (nfcAdapter == null) {
+                ToastHelper.showToast(this, "เครื่องนี้ไม่รองรับ NFC")
+            }
             
             onNfcScanned = { id ->
                 val successTransition = TransitionSet().apply {
@@ -298,11 +299,17 @@ class MembersActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
             sheetBinding.llMemberForm.visibility = View.VISIBLE
         }
 
-        sheetBinding.ivNfcIcon.setOnClickListener {
+        sheetBinding.ivNfcIcon.apply {
             if (NfcSimulationHelper.IS_SIMULATION_ENABLED) {
-                NfcSimulationHelper.showManualNfcDialog(this) { id ->
-                    onNfcScanned?.invoke(id)
+                setOnClickListener {
+                    NfcSimulationHelper.showManualNfcDialog(this@MembersActivity) { id ->
+                        onNfcScanned?.invoke(id)
+                    }
                 }
+            } else {
+                isClickable = false
+                isFocusable = false
+                background = null
             }
         }
 

@@ -114,6 +114,9 @@ class EditItemsActivity : AppCompatActivity() {
         val sheetBinding = BottomSheetAddProductBinding.inflate(layoutInflater)
         bottomSheetDialog.setContentView(sheetBinding.root)
 
+        bottomSheetDialog.behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+        bottomSheetDialog.behavior.skipCollapsed = true
+
         sheetBinding.tvSheetTitle.text = "แก้ไขรายการสิ่งของ"
         sheetBinding.tvSheetSubtitle.text = "แก้ไขข้อมูลสิ่งของในระบบ"
         sheetBinding.etProductName.setText(product.name)
@@ -180,6 +183,9 @@ class EditItemsActivity : AppCompatActivity() {
         val bottomSheetDialog = BottomSheetDialog(this)
         val sheetBinding = BottomSheetAddProductBinding.inflate(layoutInflater)
         bottomSheetDialog.setContentView(sheetBinding.root)
+
+        bottomSheetDialog.behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+        bottomSheetDialog.behavior.skipCollapsed = true
 
         newProductImageUri = null
         currentBottomSheetImageView = sheetBinding.ivAddImage
