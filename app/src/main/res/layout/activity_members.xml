@@ -8,7 +8,6 @@
     android:background="@color/background"
     tools:context=".MembersActivity">
 
-    <!-- Header Area -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/header"
         android:layout_width="match_parent"
@@ -69,7 +68,6 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Search Area -->
     <LinearLayout
         android:id="@+id/searchArea"
         android:layout_width="match_parent"
@@ -115,7 +113,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/searchArea" />
 
-    <!-- List Area -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvMembers"
         android:layout_width="match_parent"
@@ -162,7 +159,6 @@
             android:textSize="14sp" />
     </LinearLayout>
 
-    <!-- Info Box -->
     <LinearLayout
         android:id="@+id/infoBox"
         android:layout_width="match_parent"

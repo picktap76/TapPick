@@ -19,7 +19,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <!-- NFC Scanning View -->
         <LinearLayout
             android:id="@+id/llScanNfc"
             android:layout_width="match_parent"
@@ -68,7 +67,6 @@
                 android:textColor="@color/text_subtitle" />
         </LinearLayout>
 
-        <!-- Member Form View -->
         <LinearLayout
             android:id="@+id/llMemberForm"
             android:layout_width="match_parent"

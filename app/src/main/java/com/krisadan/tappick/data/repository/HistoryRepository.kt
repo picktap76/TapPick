@@ -53,12 +53,11 @@ class HistoryRepository private constructor(context: Context) {
         calendar.set(Calendar.SECOND, 0)
         calendar.set(Calendar.MILLISECOND, 0)
         
-        // Find the most recent Monday
-        val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) // Sunday=1, Monday=2...
+        val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
         val daysToSubtract = if (dayOfWeek >= Calendar.MONDAY) {
             dayOfWeek - Calendar.MONDAY
         } else {
-            6 // Sunday
+            6
         }
         calendar.add(Calendar.DAY_OF_YEAR, -daysToSubtract)
         
@@ -67,7 +66,7 @@ class HistoryRepository private constructor(context: Context) {
 
     fun addEntry(entry: HistoryEntry) {
         val history = getHistory().toMutableList()
-        history.add(0, entry) // Add to top
+        history.add(0, entry)
         saveHistory(history)
     }
 

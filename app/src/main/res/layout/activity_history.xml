@@ -8,7 +8,6 @@
     android:background="@color/background"
     tools:context=".HistoryActivity">
 
-    <!-- Header -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/header"
         android:layout_width="match_parent"
@@ -61,7 +60,6 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Content -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -74,15 +72,14 @@
             android:orientation="vertical"
             android:padding="12dp">
 
-            <!-- Filters -->
             <LinearLayout
+                android:id="@+id/btnFilterDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:weightSum="2">
 
                 <LinearLayout
-                    android:id="@+id/btnFilterDate"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="6dp"
@@ -169,7 +166,6 @@
 
             </LinearLayout>
 
-            <!-- Table Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -184,7 +180,6 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <!-- Table Header -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -243,7 +238,6 @@
                         android:layout_height="1dp"
                         android:background="@color/card_border" />
 
-                    <!-- List Container -->
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/rvHistory"
                         android:layout_width="match_parent"
@@ -259,7 +253,6 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Footer / Pagination -->
     <include
         android:id="@+id/pagination"
         layout="@layout/layout_pagination"

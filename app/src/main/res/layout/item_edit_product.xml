@@ -13,7 +13,6 @@
         android:paddingVertical="12dp"
         android:paddingHorizontal="16dp">
 
-        <!-- Image Section -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardProductImage"
             android:layout_width="56dp"
@@ -34,7 +33,6 @@
                 tools:src="@tools:sample/avatars" />
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Name Section -->
         <TextView
             android:id="@+id/tvProductName"
             android:layout_width="0dp"
@@ -52,7 +50,6 @@
             app:layout_constraintStart_toEndOf="@id/cardProductImage"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Edit Button -->
         <ImageView
             android:id="@+id/btnEditProduct"
             android:layout_width="36dp"
@@ -65,7 +62,6 @@
             app:layout_constraintEnd_toStartOf="@id/btnDeleteProduct"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Delete Button -->
         <ImageView
             android:id="@+id/btnDeleteProduct"
             android:layout_width="36dp"

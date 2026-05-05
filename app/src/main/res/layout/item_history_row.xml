@@ -15,7 +15,6 @@
         android:paddingHorizontal="4dp"
         android:weightSum="5">
 
-        <!-- วันที่ - เวลา -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -39,7 +38,6 @@
                 android:textSize="10sp" />
         </LinearLayout>
 
-        <!-- ผู้ใช้งาน -->
         <TextView
             android:id="@+id/tvUserName"
             android:layout_width="0dp"
@@ -52,7 +50,6 @@
             android:singleLine="true"
             android:ellipsize="end" />
 
-        <!-- ระดับของผู้ใช้งาน -->
         <FrameLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -72,7 +69,6 @@
                 android:ellipsize="end" />
         </FrameLayout>
 
-        <!-- รายการสิ่งของ -->
         <TextView
             android:id="@+id/tvItemName"
             android:layout_width="0dp"
@@ -85,7 +81,6 @@
             android:singleLine="true"
             android:ellipsize="end" />
 
-        <!-- จำนวน -->
         <TextView
             android:id="@+id/tvQuantity"
             android:layout_width="0dp"

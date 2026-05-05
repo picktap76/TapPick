@@ -51,22 +51,18 @@
                 android:layout_marginTop="24dp"
                 android:orientation="vertical">
 
-                <!-- History -->
                 <include
                     android:id="@+id/menuHistory"
                     layout="@layout/item_menu" />
 
-                <!-- Edit Items -->
                 <include
                     android:id="@+id/menuEditItems"
                     layout="@layout/item_menu" />
 
-                <!-- Permissions -->
                 <include
                     android:id="@+id/menuPermissions"
                     layout="@layout/item_menu" />
 
-                <!-- Members -->
                 <include
                     android:id="@+id/menuMembers"
                     layout="@layout/item_menu" />

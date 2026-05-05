@@ -78,7 +78,6 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         
-        // Check if authentication is required
         val members = memberRepository.getMembers()
         val authRequired = if (members.isEmpty()) false else !sessionManager.isLoggedIn()
 
@@ -88,7 +87,6 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        // Refresh products based on permissions
         refreshProducts(binding.etSearch.text.toString())
     }
 
@@ -116,12 +114,11 @@ class MainActivity : AppCompatActivity() {
             filteredProducts = filteredProducts.filter { it.name.contains(query, ignoreCase = true) }
         }
 
-        // Calculate remaining counts
         val remainingCounts = mutableMapOf<String, Int?>()
         if (role != null) {
             if (role.id == "admin_role") {
                 for (product in filteredProducts) {
-                    remainingCounts[product.id] = null // Unlimited
+                    remainingCounts[product.id] = null
                 }
             } else {
                 val memberId = effectiveMember.id
@@ -156,7 +153,6 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        // 1. Save to History
         val entry = HistoryEntry(
             memberId = member.id,
             memberName = member.name,
@@ -164,18 +160,14 @@ class MainActivity : AppCompatActivity() {
         )
         historyRepository.addEntry(entry)
 
-        // 2. Sync to Google Sheets
         val role = roleRepository.getRoles().find { it.id == member.roleId }
         GoogleSheetsHelper.uploadEntry(entry, role?.name ?: "-")
 
-        // 3. Print Receipt
         printReceipt(member, selectedItems)
 
-        // 4. Reset UI and Logout
         sessionManager.logout()
         ToastHelper.showToast(this, "บันทึกการเบิกเรียบร้อย")
         
-        // 4. Navigate to Login smoothly
         navigateToLogin()
     }
 
@@ -197,7 +189,6 @@ class MainActivity : AppCompatActivity() {
         
         val printerHelper = SunmiPrinterHelper.getInstance(this)
         
-        // Build receipt content
         printerHelper.printText("--------------------------------\n")
         printerHelper.printText("วันที่ $dateStr\n")
         printerHelper.printText("เวลา $timeStr\n")

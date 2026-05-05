@@ -47,9 +47,6 @@ class SunmiPrinterHelper private constructor(private val context: Context) {
         context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
     }
 
-    /**
-     * สั่งพิมพ์ข้อความ
-     */
     fun printText(text: String) {
         try {
             woyouService?.printText(text, object : ICallback.Stub() {
@@ -63,9 +60,6 @@ class SunmiPrinterHelper private constructor(private val context: Context) {
         Log.d("SunmiPrinter", "Command Sent: $text")
     }
     
-    /**
-     * สั่งเลื่อนกระดาษตามจำนวนบรรทัด
-     */
     fun lineWrap(lines: Int) {
         try {
             woyouService?.lineWrap(lines, null)
@@ -74,12 +68,8 @@ class SunmiPrinterHelper private constructor(private val context: Context) {
         }
     }
 
-    /**
-     * สั่งตัดกระดาษ (สำหรับรุ่นที่มีใบมีด) หรือเลื่อนกระดาษเพื่อให้ฉีกง่าย
-     */
     fun cutPaper() {
         try {
-            // สำหรับ V2s ที่ไม่มีใบมีดอัตโนมัติ คำสั่งนี้จะช่วยเลื่อนกระดาษมาในจุดที่ฉีกได้พอดี
             woyouService?.cutPaper(null)
         } catch (e: Exception) {
             e.printStackTrace()

@@ -184,7 +184,6 @@ class MembersActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         sheetBinding.etMemberName.setText(member.name)
         sheetBinding.btnAddMemberConfirm.text = "บันทึกการแก้ไข"
         
-        // Hide PIN and NFC buttons during edit for now, or you can enable them if needed
         sheetBinding.btnSetPin.visibility = View.GONE
         sheetBinding.btnScanNfc.visibility = View.GONE
         sheetBinding.tvStatus.visibility = View.GONE
@@ -247,7 +246,6 @@ class MembersActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         addMemberSheetBinding = sheetBinding
         bottomSheetDialog.setContentView(sheetBinding.root)
 
-        // Force expand the bottom sheet so it's not cut off
         bottomSheetDialog.behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
         bottomSheetDialog.behavior.skipCollapsed = true
 
