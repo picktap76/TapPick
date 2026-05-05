@@ -198,7 +198,7 @@
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1.2"
+                            android:layout_weight="1.15"
                             android:text="วันที่ - เวลา"
                             android:textColor="@color/text_subtitle"
                             android:textSize="10sp" />
@@ -206,7 +206,7 @@
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
+                            android:layout_weight="1.05"
                             android:text="ผู้ใช้งาน"
                             android:textColor="@color/text_subtitle"
                             android:textSize="10sp" />

@@ -1,5 +1,10 @@
 package com.krisadan.tappick.ui.adapter
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
+import android.graphics.Path
 import android.net.Uri
 import android.text.Spannable
 import android.text.SpannableString
@@ -7,6 +12,8 @@ import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AccelerateInterpolator
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
@@ -25,6 +32,7 @@ class MainProductAdapter(private var products: List<Product>) :
     private var remainingCounts = mapOf<String, Int?>() // productId -> remaining count (null means unlimited)
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val rootLayout: ViewGroup = view as ViewGroup
         val imgProduct: ImageView = view.findViewById(R.id.imgProduct)
         val tvProductName: TextView = view.findViewById(R.id.tvProductName)
         val tvRemaining: TextView = view.findViewById(R.id.tvRemaining)
@@ -87,17 +95,26 @@ class MainProductAdapter(private var products: List<Product>) :
         val currentQty = quantities[product.id] ?: 0
         holder.tvQuantity.text = currentQty.toString()
 
-        holder.btnPlus.setOnClickListener {
+        val addOneWithAnimation = {
             val current = quantities[product.id] ?: 0
-            val remaining = remainingCounts[product.id]
+            val rem = remainingCounts[product.id]
             
-            if (remaining == null || current < remaining) {
+            if (rem == null || current < rem) {
+                animateImageToPlusButton(holder)
                 val newQty = current + 1
                 quantities[product.id] = newQty
                 holder.tvQuantity.text = newQty.toString()
             } else {
                 ToastHelper.showToast(holder.itemView.context, "เกินจำนวนที่สามารถเบิกได้")
             }
+        }
+
+        holder.imgProduct.setOnClickListener {
+            addOneWithAnimation()
+        }
+
+        holder.btnPlus.setOnClickListener {
+            addOneWithAnimation()
         }
 
         holder.btnMinus.setOnClickListener {
@@ -108,6 +125,53 @@ class MainProductAdapter(private var products: List<Product>) :
                 holder.tvQuantity.text = newQty.toString()
             }
         }
+    }
+
+    private fun animateImageToPlusButton(holder: ViewHolder) {
+        val context = holder.itemView.context
+        val parentView = holder.itemView.rootView as ViewGroup
+        
+        // Create a temporary ImageView for animation
+        val animImageView = ImageView(context).apply {
+            layoutParams = FrameLayout.LayoutParams(holder.imgProduct.width, holder.imgProduct.height)
+            setImageDrawable(holder.imgProduct.drawable)
+            scaleType = holder.imgProduct.scaleType
+            if (holder.imgProduct.paddingTop > 0) {
+                setPadding(holder.imgProduct.paddingLeft, holder.imgProduct.paddingTop, 
+                           holder.imgProduct.paddingRight, holder.imgProduct.paddingBottom)
+            }
+        }
+        
+        parentView.addView(animImageView)
+
+        // Get start and end positions
+        val startLoc = IntArray(2)
+        holder.imgProduct.getLocationInWindow(startLoc)
+        val endLoc = IntArray(2)
+        holder.btnPlus.getLocationInWindow(endLoc)
+
+        animImageView.x = startLoc[0].toFloat()
+        animImageView.y = startLoc[1].toFloat()
+
+        // Animation logic
+        val moveX = ObjectAnimator.ofFloat(animImageView, View.X, endLoc[0].toFloat() + (holder.btnPlus.width / 2) - (holder.imgProduct.width / 2))
+        val moveY = ObjectAnimator.ofFloat(animImageView, View.Y, endLoc[1].toFloat() + (holder.btnPlus.height / 2) - (holder.imgProduct.height / 2))
+        val scaleX = ObjectAnimator.ofFloat(animImageView, View.SCALE_X, 1f, 0.01f)
+        val scaleY = ObjectAnimator.ofFloat(animImageView, View.SCALE_Y, 1f, 0.01f)
+        val fade = ObjectAnimator.ofFloat(animImageView, View.ALPHA, 1f, 0.5f)
+
+        val animatorSet = AnimatorSet().apply {
+            playTogether(moveX, moveY, scaleX, scaleY, fade)
+            duration = 600
+            interpolator = AccelerateInterpolator()
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    parentView.removeView(animImageView)
+                }
+            })
+        }
+        
+        animatorSet.start()
     }
 
     override fun getItemCount() = products.size
