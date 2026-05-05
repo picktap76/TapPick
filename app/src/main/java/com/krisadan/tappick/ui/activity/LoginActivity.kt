@@ -9,7 +9,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.krisadan.tappick.R
 import com.krisadan.tappick.data.repository.MemberRepository
 import com.krisadan.tappick.data.repository.SessionManager
 import com.krisadan.tappick.databinding.ActivityLoginBinding

@@ -9,7 +9,6 @@ import androidx.core.util.Pair
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.datepicker.MaterialDatePicker
-import com.krisadan.tappick.R
 import com.krisadan.tappick.data.model.HistoryEntry
 import com.krisadan.tappick.data.repository.HistoryRepository
 import com.krisadan.tappick.data.repository.MemberRepository

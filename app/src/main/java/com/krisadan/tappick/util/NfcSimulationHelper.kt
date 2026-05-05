@@ -14,7 +14,7 @@ import com.krisadan.tappick.R
 
 object NfcSimulationHelper {
     
-    const val IS_SIMULATION_ENABLED = true
+    const val IS_SIMULATION_ENABLED = false
 
     fun showManualNfcDialog(context: Context, callback: (String) -> Unit) {
         if (!IS_SIMULATION_ENABLED) return

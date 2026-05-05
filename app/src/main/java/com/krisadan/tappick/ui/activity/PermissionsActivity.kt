@@ -16,16 +16,19 @@ import com.krisadan.tappick.R
 import com.krisadan.tappick.data.model.Role
 import com.krisadan.tappick.data.repository.ProductRepository
 import com.krisadan.tappick.data.repository.RoleRepository
+import com.krisadan.tappick.data.repository.SettingsRepository
 import com.krisadan.tappick.databinding.ActivityPermissionsBinding
 import com.krisadan.tappick.databinding.BottomSheetAddPermissionBinding
 import com.krisadan.tappick.databinding.ItemPermissionQuantityBinding
 import com.krisadan.tappick.databinding.ItemRoleDropdownBinding
 import com.krisadan.tappick.util.ToastHelper
+import java.util.Calendar
 
 class PermissionsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityPermissionsBinding
     private lateinit var productRepository: ProductRepository
     private lateinit var roleRepository: RoleRepository
+    private lateinit var settingsRepository: SettingsRepository
     
     private var selectedRole: Role? = null
     private var roles: List<Role> = emptyList()
@@ -40,6 +43,7 @@ class PermissionsActivity : AppCompatActivity() {
         
         productRepository = ProductRepository.getInstance(this)
         roleRepository = RoleRepository.getInstance(this)
+        settingsRepository = SettingsRepository.getInstance(this)
         
         ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -60,7 +64,54 @@ class PermissionsActivity : AppCompatActivity() {
             role?.let { selectRole(it) }
         }
 
+        binding.btnEditReset.setOnClickListener {
+            showResetScheduleDialog()
+        }
+
+        updateResetSummary()
         loadRoles()
+    }
+
+    private fun updateResetSummary() {
+        val dayName = settingsRepository.getResetDayName()
+        val hour = settingsRepository.getResetHour()
+        val minute = settingsRepository.getResetMinute()
+        val timeStr = String.format("%02d:%02d", hour, minute)
+        binding.tvResetSummary.text = "รีเซ็ตทุก$dayName เวลา $timeStr"
+    }
+
+    private fun showResetScheduleDialog() {
+        val days = arrayOf("วันอาทิตย์", "วันจันทร์", "วันอังคาร", "วันพุธ", "วันพฤหัสบดี", "วันศุกร์", "วันเสาร์")
+        val calendarDays = intArrayOf(Calendar.SUNDAY, Calendar.MONDAY, Calendar.TUESDAY, Calendar.WEDNESDAY, Calendar.THURSDAY, Calendar.FRIDAY, Calendar.SATURDAY)
+        
+        val currentDay = settingsRepository.getResetDay()
+        val currentDayIndex = calendarDays.indexOf(currentDay).coerceAtLeast(0)
+
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("เลือกวันและเวลาที่รีเซ็ตสิทธิ์")
+            .setSingleChoiceItems(days, currentDayIndex) { dialog, which ->
+                val selectedDay = calendarDays[which]
+                showTimePickerDialog(selectedDay)
+                dialog.dismiss()
+            }
+            .setNegativeButton("ยกเลิก", null)
+            .show()
+    }
+
+    private fun showTimePickerDialog(selectedDay: Int) {
+        val currentHour = settingsRepository.getResetHour()
+        val currentMinute = settingsRepository.getResetMinute()
+
+        val timePicker = android.app.TimePickerDialog(this, { _, hour, minute ->
+            settingsRepository.setResetDay(selectedDay)
+            settingsRepository.setResetHour(hour)
+            settingsRepository.setResetMinute(minute)
+            updateResetSummary()
+            ToastHelper.showToast(this, "บันทึกกำหนดการรีเซ็ตเรียบร้อย")
+        }, currentHour, currentMinute, true)
+        
+        timePicker.setTitle("เลือกเวลารีเซ็ต")
+        timePicker.show()
     }
 
     private fun loadRoles() {

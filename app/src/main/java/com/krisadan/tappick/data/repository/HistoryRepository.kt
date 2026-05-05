@@ -9,6 +9,7 @@ import java.util.Calendar
 
 class HistoryRepository private constructor(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("tappick_history_prefs", Context.MODE_PRIVATE)
+    private val settingsRepository = SettingsRepository.getInstance(context)
     private val gson = Gson()
     
     private var cachedHistory: MutableList<HistoryEntry>? = null
@@ -38,7 +39,7 @@ class HistoryRepository private constructor(context: Context) {
     }
 
     fun getWeeklyUsageCount(memberId: String, productId: String): Int {
-        val startOfWeek = getStartOfCurrentWeek()
+        val startOfWeek = getResetTimestamp()
         return getHistory()
             .filter { it.memberId == memberId && it.timestamp >= startOfWeek }
             .flatMap { it.items }
@@ -46,22 +47,32 @@ class HistoryRepository private constructor(context: Context) {
             .sumOf { it.quantity }
     }
 
-    private fun getStartOfCurrentWeek(): Long {
-        val calendar = Calendar.getInstance()
-        calendar.set(Calendar.HOUR_OF_DAY, 0)
-        calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar.SECOND, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
+    private fun getResetTimestamp(): Long {
+        val resetDay = settingsRepository.getResetDay()
+        val resetHour = settingsRepository.getResetHour()
+        val resetMinute = settingsRepository.getResetMinute()
+
+        val now = Calendar.getInstance()
+        val resetTime = Calendar.getInstance()
         
-        val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
-        val daysToSubtract = if (dayOfWeek >= Calendar.MONDAY) {
-            dayOfWeek - Calendar.MONDAY
-        } else {
-            6
+        resetTime.set(Calendar.HOUR_OF_DAY, resetHour)
+        resetTime.set(Calendar.MINUTE, resetMinute)
+        resetTime.set(Calendar.SECOND, 0)
+        resetTime.set(Calendar.MILLISECOND, 0)
+        
+        val currentDayOfWeek = now.get(Calendar.DAY_OF_WEEK)
+
+        var daysToSubtract = (currentDayOfWeek - resetDay + 7) % 7
+
+        if (daysToSubtract == 0) {
+            if (now.before(resetTime)) {
+                daysToSubtract = 7
+            }
         }
-        calendar.add(Calendar.DAY_OF_YEAR, -daysToSubtract)
         
-        return calendar.timeInMillis
+        resetTime.add(Calendar.DAY_OF_YEAR, -daysToSubtract)
+        
+        return resetTime.timeInMillis
     }
 
     fun addEntry(entry: HistoryEntry) {
