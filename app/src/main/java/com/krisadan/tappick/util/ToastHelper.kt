@@ -3,10 +3,6 @@ package com.krisadan.tappick.util
 import android.content.Context
 import android.widget.Toast
 
-/**
- * Helper to prevent Toast queuing.
- * Cancels the previous toast before showing a new one.
- */
 object ToastHelper {
     private var currentToast: Toast? = null
 

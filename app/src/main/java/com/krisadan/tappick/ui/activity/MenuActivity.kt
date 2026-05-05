@@ -46,7 +46,7 @@ class MenuActivity : AppCompatActivity() {
         val effectiveMember = getEffectiveMember()
         val isAdmin = effectiveMember?.roleId == "admin_role" || memberRepository.getMembers().isEmpty()
 
-        // History
+        
         setupMenuItem(
             binding.menuHistory,
             R.drawable.ic_history,
@@ -56,7 +56,7 @@ class MenuActivity : AppCompatActivity() {
             startActivity(Intent(this, HistoryActivity::class.java))
         }
 
-        // Edit Items
+        
         if (isAdmin) {
             setupMenuItem(
                 binding.menuEditItems,
@@ -72,7 +72,7 @@ class MenuActivity : AppCompatActivity() {
             binding.menuEditItems.root.visibility = View.GONE
         }
 
-        // Permissions
+        
         if (isAdmin) {
             setupMenuItem(
                 binding.menuPermissions,
@@ -88,7 +88,7 @@ class MenuActivity : AppCompatActivity() {
             binding.menuPermissions.root.visibility = View.GONE
         }
 
-        // Members
+        
         if (isAdmin) {
             setupMenuItem(
                 binding.menuMembers,

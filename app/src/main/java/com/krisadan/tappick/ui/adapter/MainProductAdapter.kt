@@ -29,7 +29,7 @@ class MainProductAdapter(private var products: List<Product>) :
     RecyclerView.Adapter<MainProductAdapter.ViewHolder>() {
 
     private val quantities = mutableMapOf<String, Int>()
-    private var remainingCounts = mapOf<String, Int?>() // productId -> remaining count (null means unlimited)
+    private var remainingCounts = mapOf<String, Int?>() 
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val rootLayout: ViewGroup = view as ViewGroup
@@ -51,7 +51,7 @@ class MainProductAdapter(private var products: List<Product>) :
         val product = products[position]
         holder.tvProductName.text = product.name
         
-        // Handle Remaining Count display
+        
         val remaining = remainingCounts[product.id]
         val remainingText = if (remaining == null) "ไม่จำกัด" else remaining.toString()
         val fullText = "คงเหลือ: $remainingText"
@@ -131,7 +131,7 @@ class MainProductAdapter(private var products: List<Product>) :
         val context = holder.itemView.context
         val parentView = holder.itemView.rootView as ViewGroup
         
-        // Create a temporary ImageView for animation
+        
         val animImageView = ImageView(context).apply {
             layoutParams = FrameLayout.LayoutParams(holder.imgProduct.width, holder.imgProduct.height)
             setImageDrawable(holder.imgProduct.drawable)
@@ -144,7 +144,7 @@ class MainProductAdapter(private var products: List<Product>) :
         
         parentView.addView(animImageView)
 
-        // Get start and end positions
+        
         val startLoc = IntArray(2)
         holder.imgProduct.getLocationInWindow(startLoc)
         val endLoc = IntArray(2)
@@ -153,7 +153,7 @@ class MainProductAdapter(private var products: List<Product>) :
         animImageView.x = startLoc[0].toFloat()
         animImageView.y = startLoc[1].toFloat()
 
-        // Animation logic
+        
         val moveX = ObjectAnimator.ofFloat(animImageView, View.X, endLoc[0].toFloat() + (holder.btnPlus.width / 2) - (holder.imgProduct.width / 2))
         val moveY = ObjectAnimator.ofFloat(animImageView, View.Y, endLoc[1].toFloat() + (holder.btnPlus.height / 2) - (holder.imgProduct.height / 2))
         val scaleX = ObjectAnimator.ofFloat(animImageView, View.SCALE_X, 1f, 0.01f)

@@ -84,8 +84,8 @@ class PaginationHelper<T>(
         llPagesContainer.removeAllViews()
         if (totalPages <= 1) return
 
-        // Simple rendering of page numbers: 1 2 3 ... total
-        // For brevity, we show up to 5 pages around current
+        
+        
         val start = Math.max(1, currentPage - 2)
         val end = Math.min(totalPages, start + 4)
         
@@ -104,7 +104,7 @@ class PaginationHelper<T>(
                 textSize = 11f
                 
                 if (i == currentPage) {
-                    setBackgroundResource(R.drawable.bg_badge_blue) // Using existing blue bg
+                    setBackgroundResource(R.drawable.bg_badge_blue) 
                     setTextColor(container.context.getColor(R.color.primary_blue))
                     setTypeface(null, Typeface.BOLD)
                 } else {

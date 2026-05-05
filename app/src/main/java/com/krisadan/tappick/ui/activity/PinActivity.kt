@@ -27,7 +27,7 @@ class PinActivity : AppCompatActivity() {
         memberRepository = MemberRepository.getInstance(this)
         sessionManager = SessionManager.getInstance(this)
 
-        // If called for result (adding member), it's not login mode
+        
         isLoginMode = callingActivity == null
 
         if (!isLoginMode) {

@@ -297,7 +297,7 @@ class PermissionsActivity : AppCompatActivity() {
                 role.color = tempSelectedColor
                 roleRepository.updateRole(role)
                 
-                // If the edited role is the currently selected one, refresh its info
+                
                 if (selectedRole?.id == role.id) {
                     selectRole(role)
                 }
