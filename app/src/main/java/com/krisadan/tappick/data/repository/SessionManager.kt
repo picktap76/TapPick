@@ -34,10 +34,4 @@ class SessionManager private constructor(context: Context) {
     fun isLoggedIn(): Boolean {
         return getMemberId() != null
     }
-
-    // Compatibility for old code if needed
-    fun getCurrentMemberNfcId(): String? {
-        // This is now slightly misleading but I'll update usages
-        return getMemberId()
-    }
 }

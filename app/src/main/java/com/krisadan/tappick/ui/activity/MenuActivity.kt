@@ -117,9 +117,9 @@ class MenuActivity : AppCompatActivity() {
     }
 
     private fun getEffectiveMember(): Member? {
-        val nfcId = sessionManager.getCurrentMemberNfcId()
-        val currentMember = if (nfcId != null) {
-            memberRepository.getMembers().find { it.nfcId == nfcId }
+        val memberId = sessionManager.getMemberId()
+        val currentMember = if (memberId != null) {
+            memberRepository.getMembers().find { it.id == memberId }
         } else null
 
         return currentMember ?: memberRepository.getMembers().let { 

@@ -206,7 +206,7 @@
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1.1"
+                            android:layout_weight="1"
                             android:text="ผู้ใช้งาน"
                             android:textColor="@color/text_subtitle"
                             android:textSize="10sp" />
