@@ -6,4 +6,19 @@
     </style>
 
     <style name="Theme.TapPick" parent="Base.Theme.TapPick" />
+
+    <style name="PinKeyStyle" parent="Widget.Material3.Button">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">40sp</item>
+        <item name="backgroundTint">@color/pin_key_bg</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetRight">0dp</item>
+        <item name="cornerRadius">0dp</item>
+        <item name="android:padding">0dp</item>
+    </style>
 </resources>

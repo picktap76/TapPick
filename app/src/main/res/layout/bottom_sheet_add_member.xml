@@ -14,152 +14,201 @@
         android:layout_marginBottom="24dp"
         android:background="@color/card_border" />
 
-    <!-- Step 1: NFC Scanning -->
-    <LinearLayout
-        android:id="@+id/llScanNfc"
+    <FrameLayout
+        android:id="@+id/contentContainer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:visibility="visible">
+        android:layout_height="wrap_content">
 
-        <ImageView
-            android:id="@+id/ivNfcIcon"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:src="@drawable/ic_nfc_scan"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="@color/primary_blue" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="โปรดแตะบัตรของสมาชิกใหม่"
-            android:textColor="@color/text_title"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="ทาบบัตรสมาชิกที่ด้านหลังเครื่องเพื่อระบุตัวตน"
-            android:textColor="@color/text_subtitle"
-            android:textSize="14sp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnCancelScan"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginTop="32dp"
-            android:text="ยกเลิก"
-            android:textColor="@color/text_subtitle" />
-    </LinearLayout>
-
-    <!-- Step 2: Form -->
-    <LinearLayout
-        android:id="@+id/llMemberForm"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:visibility="gone">
-
-        <TextView
-            android:id="@+id/tvFormTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="เพิ่มสมาชิกใหม่"
-            android:textColor="@color/text_title"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="ชื่อสมาชิก"
-            android:textColor="@color/text_title"
-            android:textSize="14sp" />
-
-        <EditText
-            android:id="@+id/etMemberName"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/bg_search"
-            android:hint="ระบุชื่อ-นามสกุล"
-            android:inputType="textPersonName"
-            android:paddingHorizontal="16dp"
-            android:textSize="16sp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="ระดับของผู้ใช้"
-            android:textColor="@color/text_title"
-            android:textSize="14sp" />
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilRole"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            app:boxBackgroundColor="@color/white"
-            app:boxCornerRadiusBottomEnd="12dp"
-            app:boxCornerRadiusBottomStart="12dp"
-            app:boxCornerRadiusTopEnd="12dp"
-            app:boxCornerRadiusTopStart="12dp"
-            app:boxStrokeColor="@color/primary_blue"
-            app:hintEnabled="false">
-
-            <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                android:id="@+id/actvRole"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="none"
-                android:text="เลือกสิทธิ์"
-                android:textColor="@color/text_title"
-                android:textSize="16sp"
-                android:popupBackground="@drawable/bg_dropdown_popup" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
+        <!-- NFC Scanning View -->
         <LinearLayout
+            android:id="@+id/llScanNfc"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:orientation="horizontal">
+            android:gravity="center"
+            android:orientation="vertical"
+            android:minHeight="400dp"
+            android:paddingVertical="40dp"
+            android:visibility="gone">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCancelForm"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="56dp"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                android:text="ยกเลิก"
+            <ImageView
+                android:id="@+id/ivNfcIcon"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:src="@drawable/ic_nfc_scan"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                app:tint="@color/primary_blue"
+                android:contentDescription="Scan NFC Icon" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="โปรดแตะบัตรของสมาชิกใหม่"
+                android:textColor="@color/text_title"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="ทาบบัตรสมาชิกที่ด้านหลังเครื่องเพื่อระบุตัวตน"
                 android:textColor="@color/text_subtitle"
-                app:cornerRadius="12dp"
-                app:strokeColor="@color/card_border" />
+                android:textSize="14sp" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnAddMemberConfirm"
-                android:layout_width="0dp"
+                android:id="@+id/btnCancelScan"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:backgroundTint="@color/primary_blue"
-                android:text="เพิ่มสมาชิก"
-                app:cornerRadius="12dp" />
-
+                android:layout_marginTop="32dp"
+                android:text="ยกเลิกการสแกน"
+                android:textColor="@color/text_subtitle" />
         </LinearLayout>
 
-    </LinearLayout>
+        <!-- Member Form View -->
+        <LinearLayout
+            android:id="@+id/llMemberForm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="visible">
+
+            <TextView
+                android:id="@+id/tvFormTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="เพิ่มสมาชิกใหม่"
+                android:textColor="@color/text_title"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="ชื่อสมาชิก"
+                android:textColor="@color/text_title"
+                android:textSize="14sp" />
+
+            <EditText
+                android:id="@+id/etMemberName"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_search"
+                android:hint="ระบุชื่อ-นามสกุล"
+                android:inputType="textPersonName"
+                android:paddingHorizontal="16dp"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="ระดับของผู้ใช้"
+                android:textColor="@color/text_title"
+                android:textSize="14sp" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilRole"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:boxBackgroundColor="@color/white"
+                app:boxCornerRadiusBottomEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxStrokeColor="@color/primary_blue"
+                app:hintEnabled="false">
+
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/actvRole"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
+                    android:text="เลือกสิทธิ์"
+                    android:textColor="@color/text_title"
+                    android:textSize="16sp"
+                    android:popupBackground="@drawable/bg_dropdown_popup" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSetPin"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:text="ตั้งรหัส PIN"
+                    android:textColor="@color/primary_blue"
+                    app:cornerRadius="12dp"
+                    app:strokeColor="@color/primary_blue" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnScanNfc"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:text="สแกนบัตร NFC"
+                    android:textColor="@color/primary_blue"
+                    app:cornerRadius="12dp"
+                    app:strokeColor="@color/primary_blue" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="ยังไม่ได้ตั้ง PIN และยังไม่ได้สแกนบัตร"
+                android:textColor="@color/text_subtitle"
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCancelForm"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:text="ยกเลิก"
+                    android:textColor="@color/text_subtitle"
+                    app:cornerRadius="12dp"
+                    app:strokeColor="@color/card_border" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAddMemberConfirm"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:backgroundTint="@color/primary_blue"
+                    android:text="เพิ่มสมาชิก"
+                    app:cornerRadius="12dp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </FrameLayout>
 
 </LinearLayout>

@@ -21,7 +21,7 @@ object NfcSimulationHelper {
     // ==========================================
     // บรรทัดที่ 21: สวิตช์เปิด/ปิดการจำลอง (true = เปิด, false = ปิด)
     // ==========================================
-    const val IS_SIMULATION_ENABLED = false
+    const val IS_SIMULATION_ENABLED = true
 
     fun showManualNfcDialog(context: Context, callback: (String) -> Unit) {
         if (!IS_SIMULATION_ENABLED) return

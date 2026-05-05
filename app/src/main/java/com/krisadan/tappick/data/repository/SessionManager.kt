@@ -7,7 +7,7 @@ class SessionManager private constructor(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("tappick_session_prefs", Context.MODE_PRIVATE)
 
     companion object {
-        private const val KEY_CURRENT_MEMBER_NFC_ID = "current_member_nfc_id"
+        private const val KEY_MEMBER_ID = "member_id"
 
         @Volatile
         private var INSTANCE: SessionManager? = null
@@ -19,19 +19,25 @@ class SessionManager private constructor(context: Context) {
         }
     }
 
-    fun login(nfcId: String) {
-        prefs.edit().putString(KEY_CURRENT_MEMBER_NFC_ID, nfcId).commit()
+    fun login(memberId: String) {
+        prefs.edit().putString(KEY_MEMBER_ID, memberId).apply()
     }
 
     fun logout() {
-        prefs.edit().remove(KEY_CURRENT_MEMBER_NFC_ID).commit()
+        prefs.edit().remove(KEY_MEMBER_ID).apply()
     }
 
-    fun getCurrentMemberNfcId(): String? {
-        return prefs.getString(KEY_CURRENT_MEMBER_NFC_ID, null)
+    fun getMemberId(): String? {
+        return prefs.getString(KEY_MEMBER_ID, null)
     }
 
     fun isLoggedIn(): Boolean {
-        return getCurrentMemberNfcId() != null
+        return getMemberId() != null
+    }
+
+    // Compatibility for old code if needed
+    fun getCurrentMemberNfcId(): String? {
+        // This is now slightly misleading but I'll update usages
+        return getMemberId()
     }
 }

@@ -4,7 +4,8 @@ import java.util.UUID
 
 data class Member(
     val id: String = UUID.randomUUID().toString(),
-    val nfcId: String,
+    val nfcId: String? = null,
     var name: String,
-    var roleId: String // ID from Role
+    var roleId: String, // ID from Role
+    var pin: String = ""
 )

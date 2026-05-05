@@ -1,9 +1,15 @@
 package com.krisadan.tappick.ui.activity
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.os.Bundle
+import android.transition.AutoTransition
+import android.transition.Fade
+import android.transition.TransitionManager
+import android.transition.TransitionSet
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -11,6 +17,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -45,6 +52,28 @@ class MembersActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
 
     private var isWaitingForNfc = false
     private var onNfcScanned: ((String) -> Unit)? = null
+
+    private var addMemberSheetBinding: BottomSheetAddMemberBinding? = null
+    private var tempPin: String? = null
+    private var tempNfcId: String? = null
+
+    private val pinLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val pin = result.data?.getStringExtra("EXTRA_PIN")
+            if (pin != null) {
+                tempPin = pin
+                updateAddMemberStatus()
+            }
+        }
+    }
+
+    private fun updateAddMemberStatus() {
+        addMemberSheetBinding?.let { binding ->
+            val pinStatus = if (tempPin != null) "ตั้ง PIN เรียบร้อย" else "ยังไม่ได้ตั้ง PIN"
+            val nfcStatus = if (tempNfcId != null) "สแกนบัตรเรียบร้อย" else "ยังไม่ได้สแกนบัตร"
+            binding.tvStatus.text = "$pinStatus และ $nfcStatus"
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -149,12 +178,16 @@ class MembersActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         val sheetBinding = BottomSheetAddMemberBinding.inflate(layoutInflater)
         bottomSheetDialog.setContentView(sheetBinding.root)
 
-        sheetBinding.llScanNfc.visibility = View.GONE
         sheetBinding.llMemberForm.visibility = View.VISIBLE
         
         sheetBinding.tvFormTitle.text = "แก้ไขข้อมูลสมาชิก"
         sheetBinding.etMemberName.setText(member.name)
         sheetBinding.btnAddMemberConfirm.text = "บันทึกการแก้ไข"
+        
+        // Hide PIN and NFC buttons during edit for now, or you can enable them if needed
+        sheetBinding.btnSetPin.visibility = View.GONE
+        sheetBinding.btnScanNfc.visibility = View.GONE
+        sheetBinding.tvStatus.visibility = View.GONE
 
         val adapter = RoleDropdownAdapter(this, roles)
         sheetBinding.actvRole.setAdapter(adapter)
@@ -211,22 +244,74 @@ class MembersActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
     private fun showAddMemberBottomSheet() {
         val bottomSheetDialog = BottomSheetDialog(this)
         val sheetBinding = BottomSheetAddMemberBinding.inflate(layoutInflater)
+        addMemberSheetBinding = sheetBinding
         bottomSheetDialog.setContentView(sheetBinding.root)
 
-        var scannedNfcId: String? = null
-        isWaitingForNfc = true
+        // Force expand the bottom sheet so it's not cut off
+        bottomSheetDialog.behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+        bottomSheetDialog.behavior.skipCollapsed = true
 
-        onNfcScanned = { id ->
-            scannedNfcId = id
+        tempNfcId = null
+        tempPin = null
+        updateAddMemberStatus()
+
+        sheetBinding.btnSetPin.setOnClickListener {
+            val intent = Intent(this, PinActivity::class.java)
+            pinLauncher.launch(intent)
+        }
+
+        sheetBinding.btnScanNfc.setOnClickListener {
+            val transition = TransitionSet().apply {
+                addTransition(Fade())
+                addTransition(AutoTransition())
+                duration = 300
+            }
+            TransitionManager.beginDelayedTransition(sheetBinding.root as ViewGroup, transition)
+            sheetBinding.llMemberForm.visibility = View.GONE
+            sheetBinding.llScanNfc.visibility = View.VISIBLE
+            isWaitingForNfc = true
+            
+            onNfcScanned = { id ->
+                val successTransition = TransitionSet().apply {
+                    addTransition(Fade())
+                    addTransition(AutoTransition())
+                    duration = 300
+                }
+                TransitionManager.beginDelayedTransition(sheetBinding.root as ViewGroup, successTransition)
+                tempNfcId = id
+                isWaitingForNfc = false
+                sheetBinding.llScanNfc.visibility = View.GONE
+                sheetBinding.llMemberForm.visibility = View.VISIBLE
+                updateAddMemberStatus()
+                ToastHelper.showToast(this, "สแกนบัตรสำเร็จ")
+            }
+        }
+
+        sheetBinding.btnCancelScan.setOnClickListener {
+            val cancelTransition = TransitionSet().apply {
+                addTransition(Fade())
+                addTransition(AutoTransition())
+                duration = 300
+            }
+            TransitionManager.beginDelayedTransition(sheetBinding.root as ViewGroup, cancelTransition)
             isWaitingForNfc = false
+            onNfcScanned = null
             sheetBinding.llScanNfc.visibility = View.GONE
             sheetBinding.llMemberForm.visibility = View.VISIBLE
-            ToastHelper.showToast(this, "สแกนบัตรสำเร็จ")
+        }
+
+        sheetBinding.ivNfcIcon.setOnClickListener {
+            if (NfcSimulationHelper.IS_SIMULATION_ENABLED) {
+                NfcSimulationHelper.showManualNfcDialog(this) { id ->
+                    onNfcScanned?.invoke(id)
+                }
+            }
         }
 
         bottomSheetDialog.setOnDismissListener {
             isWaitingForNfc = false
             onNfcScanned = null
+            addMemberSheetBinding = null
         }
 
         val adapter = RoleDropdownAdapter(this, roles)
@@ -241,30 +326,20 @@ class MembersActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
             selectedRoleForNewMember = parent.adapter.getItem(position) as? Role
         }
 
-        sheetBinding.btnCancelScan.setOnClickListener { bottomSheetDialog.dismiss() }
         sheetBinding.btnCancelForm.setOnClickListener { bottomSheetDialog.dismiss() }
 
-        sheetBinding.ivNfcIcon.apply {
-            if (NfcSimulationHelper.IS_SIMULATION_ENABLED) {
-                setOnClickListener {
-                    NfcSimulationHelper.showManualNfcDialog(this@MembersActivity) { id ->
-                        onNfcScanned?.invoke(id)
-                    }
-                }
-            } else {
-                isClickable = false
-                isFocusable = false
-                background = null
-            }
-        }
-
         sheetBinding.btnAddMemberConfirm.setOnClickListener {
-            val name = sheetBinding.etMemberName.text.toString()
+            val name = sheetBinding.etMemberName.text.toString().trim()
             val roleId = selectedRoleForNewMember?.id
-            val nfcId = scannedNfcId
+            val pin = tempPin
 
-            if (name.isNotEmpty() && roleId != null && nfcId != null) {
-                val newMember = Member(nfcId = nfcId, name = name, roleId = roleId)
+            if (name.isNotEmpty() && roleId != null && pin != null) {
+                val newMember = Member(
+                    nfcId = tempNfcId,
+                    name = name, 
+                    roleId = roleId,
+                    pin = pin
+                )
                 memberRepository.addMember(newMember)
                 loadMembers()
                 bottomSheetDialog.dismiss()
@@ -273,6 +348,8 @@ class MembersActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
                 ToastHelper.showToast(this, "กรุณากรอกชื่อสมาชิก")
             } else if (roleId == null) {
                 ToastHelper.showToast(this, "กรุณาเลือกระดับผู้ใช้")
+            } else if (pin == null) {
+                ToastHelper.showToast(this, "กรุณาตั้งรหัส PIN")
             }
         }
 

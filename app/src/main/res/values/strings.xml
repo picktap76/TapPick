@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">TapPick</string>
+    <string name="please_enter_pin">กรุณาใส่ PIN 4 ตัว</string>
+    <string name="backspace">Backspace</string>
 </resources>

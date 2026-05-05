@@ -13,4 +13,6 @@
     <color name="bg_red_light">#FEF2F2</color>
     <color name="card_border">#E5E7EB</color>
     <color name="info_bg">#F0F7FF</color>
+    <color name="pin_bg">#54C1FF</color>
+    <color name="pin_key_bg">#3BA9EE</color>
 </resources>

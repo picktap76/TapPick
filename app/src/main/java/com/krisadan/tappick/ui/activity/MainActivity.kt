@@ -82,7 +82,7 @@ class MainActivity : AppCompatActivity() {
         val authRequired = if (members.isEmpty()) false else !sessionManager.isLoggedIn()
 
         if (authRequired) {
-            val intent = Intent(this, LoginActivity::class.java)
+            val intent = Intent(this, PinActivity::class.java)
             startActivity(intent)
             return
         }
@@ -137,8 +137,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getCurrentMember(): Member? {
-        val nfcId = sessionManager.getCurrentMemberNfcId() ?: return null
-        return memberRepository.getMembers().find { it.nfcId == nfcId }
+        val memberId = sessionManager.getMemberId() ?: return null
+        return memberRepository.getMembers().find { it.id == memberId }
     }
 
     private fun handleConfirm() {
@@ -176,7 +176,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun navigateToLogin() {
         adapter.clearQuantities()
-        val intent = Intent(this, LoginActivity::class.java)
+        val intent = Intent(this, PinActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()

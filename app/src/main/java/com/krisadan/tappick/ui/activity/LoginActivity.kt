@@ -56,6 +56,12 @@ class LoginActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
                 background = null
             }
         }
+
+        binding.btnSwitchToPin.setOnClickListener {
+            val intent = Intent(this, PinActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
     }
 
     override fun onResume() {
@@ -85,14 +91,12 @@ class LoginActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         
         val member = memberRepository.getMembers().find { it.nfcId == id }
         if (member != null) {
-            sessionManager.login(id)
+            sessionManager.login(member.id)
             ToastHelper.showToast(this, "ยินดีต้อนรับคุณ ${member.name}")
             
-            if (isTaskRoot) {
-                val intent = Intent(this, MainActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(intent)
-            }
+            val intent = Intent(this, MainActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
             finish()
         } else {
             isProcessing = false
