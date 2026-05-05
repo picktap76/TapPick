@@ -47,6 +47,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.gson)
     implementation(libs.poi.ooxml)
+    implementation(libs.okhttp)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)

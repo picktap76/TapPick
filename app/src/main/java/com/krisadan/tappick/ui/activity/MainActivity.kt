@@ -21,6 +21,7 @@ import com.krisadan.tappick.data.repository.RoleRepository
 import com.krisadan.tappick.data.repository.SessionManager
 import com.krisadan.tappick.databinding.ActivityMainBinding
 import com.krisadan.tappick.ui.adapter.MainProductAdapter
+import com.krisadan.tappick.util.GoogleSheetsHelper
 import com.krisadan.tappick.util.SunmiPrinterHelper
 import com.krisadan.tappick.util.ToastHelper
 import java.text.SimpleDateFormat
@@ -163,10 +164,14 @@ class MainActivity : AppCompatActivity() {
         )
         historyRepository.addEntry(entry)
 
-        // 2. Print Receipt
+        // 2. Sync to Google Sheets
+        val role = roleRepository.getRoles().find { it.id == member.roleId }
+        GoogleSheetsHelper.uploadEntry(entry, role?.name ?: "-")
+
+        // 3. Print Receipt
         printReceipt(member, selectedItems)
 
-        // 3. Reset UI and Logout
+        // 4. Reset UI and Logout
         sessionManager.logout()
         ToastHelper.showToast(this, "บันทึกการเบิกเรียบร้อย")
         
