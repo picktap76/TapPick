@@ -89,6 +89,11 @@ class MainActivity : AppCompatActivity() {
         refreshProducts(binding.etSearch.text.toString())
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        SunmiPrinterHelper.getInstance(this).release()
+    }
+
     private fun refreshProducts(query: String = "") {
         val allProducts = repository.getProducts()
         val currentMember = getCurrentMember()
@@ -187,19 +192,7 @@ class MainActivity : AppCompatActivity() {
         val timeStr = sdfTime.format(now)
         
         val printerHelper = SunmiPrinterHelper.getInstance(this)
-        
-        printerHelper.printText("--------------------------------\n")
-        printerHelper.printText("วันที่ $dateStr\n")
-        printerHelper.printText("เวลา $timeStr\n")
-        printerHelper.printText("ชื่อผู้ใช้ ${member.name}\n")
-        printerHelper.printText("--------------------------------\n")
-        printerHelper.printText("รายการเบิก\n")
-        for (item in items) {
-            printerHelper.printText("- ${item.productName} ${item.quantity}\n")
-        }
-        printerHelper.printText("--------------------------------\n")
-        printerHelper.lineWrap(3)
-        printerHelper.cutPaper()
+        printerHelper.printReceipt("TapPick Receipt", dateStr, timeStr, member.name, items)
         
         ToastHelper.showToast(this, "สั่งปริ้นท์บิลเรียบร้อย")
     }

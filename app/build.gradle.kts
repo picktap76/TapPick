@@ -48,6 +48,7 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.poi.ooxml)
     implementation(libs.okhttp)
+    implementation(libs.sunmi.printerx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)

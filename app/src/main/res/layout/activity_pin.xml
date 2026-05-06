@@ -9,10 +9,10 @@
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="80dp"
+        android:layout_marginTop="24dp"
         android:text="@string/please_enter_pin"
         android:textColor="@color/white"
-        android:textSize="32sp"
+        android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -22,7 +22,7 @@
         android:id="@+id/pinContainer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="48dp"
+        android:layout_marginTop="16dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
@@ -33,7 +33,7 @@
             android:id="@+id/pin1"
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:layout_margin="12dp"
+            android:layout_margin="8dp"
             android:contentDescription="PIN 1"
             android:src="@drawable/bg_pin_circle_empty" />
 
@@ -41,7 +41,7 @@
             android:id="@+id/pin2"
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:layout_margin="12dp"
+            android:layout_margin="8dp"
             android:contentDescription="PIN 2"
             android:src="@drawable/bg_pin_circle_empty" />
 
@@ -49,7 +49,7 @@
             android:id="@+id/pin3"
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:layout_margin="12dp"
+            android:layout_margin="8dp"
             android:contentDescription="PIN 3"
             android:src="@drawable/bg_pin_circle_empty" />
 
@@ -57,16 +57,16 @@
             android:id="@+id/pin4"
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:layout_margin="12dp"
+            android:layout_margin="8dp"
             android:contentDescription="PIN 4"
             android:src="@drawable/bg_pin_circle_empty" />
 
         <ImageButton
             android:id="@+id/btnBackspace"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="16dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="8dp"
+            android:background="@color/pin_key_bg"
             android:contentDescription="@string/backspace"
             android:padding="8dp"
             android:scaleType="fitCenter"
@@ -79,8 +79,9 @@
         android:id="@+id/keypadContainer"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="48dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
+        android:background="@color/white"
         android:orientation="vertical"
         app:layout_constraintBottom_toTopOf="@id/btnSwitchToNfc"
         app:layout_constraintEnd_toEndOf="parent"
@@ -96,19 +97,19 @@
             <Button
                 android:id="@+id/btn1"
                 style="@style/PinKeyStyle"
-                android:layout_margin="0.5dp"
+                android:layout_margin="0.25dp"
                 android:text="1" />
 
             <Button
                 android:id="@+id/btn2"
                 style="@style/PinKeyStyle"
-                android:layout_margin="0.5dp"
+                android:layout_margin="0.25dp"
                 android:text="2" />
 
             <Button
                 android:id="@+id/btn3"
                 style="@style/PinKeyStyle"
-                android:layout_margin="0.5dp"
+                android:layout_margin="0.25dp"
                 android:text="3" />
         </LinearLayout>
 
@@ -121,19 +122,19 @@
             <Button
                 android:id="@+id/btn4"
                 style="@style/PinKeyStyle"
-                android:layout_margin="0.5dp"
+                android:layout_margin="0.25dp"
                 android:text="4" />
 
             <Button
                 android:id="@+id/btn5"
                 style="@style/PinKeyStyle"
-                android:layout_margin="0.5dp"
+                android:layout_margin="0.25dp"
                 android:text="5" />
 
             <Button
                 android:id="@+id/btn6"
                 style="@style/PinKeyStyle"
-                android:layout_margin="0.5dp"
+                android:layout_margin="0.25dp"
                 android:text="6" />
         </LinearLayout>
 
@@ -147,19 +148,19 @@
             <Button
                 android:id="@+id/btn7"
                 style="@style/PinKeyStyle"
-                android:layout_margin="0.5dp"
+                android:layout_margin="0.25dp"
                 android:text="7" />
 
             <Button
                 android:id="@+id/btn8"
                 style="@style/PinKeyStyle"
-                android:layout_margin="0.5dp"
+                android:layout_margin="0.25dp"
                 android:text="8" />
 
             <Button
                 android:id="@+id/btn9"
                 style="@style/PinKeyStyle"
-                android:layout_margin="0.5dp"
+                android:layout_margin="0.25dp"
                 android:text="9" />
         </LinearLayout>
 
@@ -172,18 +173,22 @@
             <View
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1" />
+                android:layout_margin="0.25dp"
+                android:layout_weight="1"
+                android:background="@color/pin_bg" />
 
             <Button
                 android:id="@+id/btn0"
                 style="@style/PinKeyStyle"
-                android:layout_margin="0.5dp"
+                android:layout_margin="0.25dp"
                 android:text="0" />
 
             <View
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1" />
+                android:layout_margin="0.25dp"
+                android:layout_weight="1"
+                android:background="@color/pin_bg" />
         </LinearLayout>
 
     </LinearLayout>
@@ -191,12 +196,17 @@
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSwitchToNfc"
         style="@style/Widget.Material3.Button.TextButton"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"
-        android:text="สแกนบัตร NFC"
+        android:layout_marginBottom="8dp"
+        android:text="@string/tap_nfc_card"
         android:textColor="@color/white"
-        android:textSize="16sp"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        app:icon="@drawable/ic_nfc_scan"
+        app:iconSize="56dp"
+        app:iconPadding="16dp"
+        app:iconTint="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
