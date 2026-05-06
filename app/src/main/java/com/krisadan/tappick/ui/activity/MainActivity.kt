@@ -72,6 +72,8 @@ class MainActivity : AppCompatActivity() {
         })
 
         setupRecyclerView()
+
+        SunmiPrinterHelper.getInstance(this)
     }
 
     override fun onResume() {
@@ -91,7 +93,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        SunmiPrinterHelper.getInstance(this).release()
     }
 
     private fun refreshProducts(query: String = "") {
@@ -184,8 +185,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun printReceipt(member: Member, items: List<TransactionItem>) {
-        val sdfDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        val sdfTime = SimpleDateFormat("HH:mm", Locale.getDefault())
+        val sdfDate = SimpleDateFormat("dd/MM/yyyy", Locale.US)
+        val sdfTime = SimpleDateFormat("HH:mm", Locale.US)
         val now = Date()
         
         val dateStr = sdfDate.format(now)

@@ -4,12 +4,17 @@
 
     <uses-permission android:name="android.permission.NFC" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="com.sunmi.permission.INNER_PRINTER" />
     <uses-feature android:name="android.hardware.nfc" android:required="true" />
 
     <queries>
         <package android:name="com.sunmi.extprinterservice" />
+        <package android:name="com.sunmi.innerprinter" />
         <intent>
             <action android:name="com.sunmi.extprinterservice.PrinterService" />
+        </intent>
+        <intent>
+            <action android:name="com.sunmi.innerprinter.PrinterService" />
         </intent>
     </queries>
 
