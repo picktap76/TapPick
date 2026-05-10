@@ -1,5 +1,6 @@
 package com.krisadan.tappick.ui.activity
 
+import android.nfc.NfcAdapter
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -30,6 +31,7 @@ class HistoryActivity : AppCompatActivity() {
     private lateinit var roleRepository: RoleRepository
     private lateinit var memberRepository: MemberRepository
     private lateinit var sessionManager: SessionManager
+    private var nfcAdapter: NfcAdapter? = null
 
     private lateinit var paginationHelper: PaginationHelper<HistoryEntry>
     private lateinit var historyAdapter: HistoryAdapter
@@ -51,6 +53,8 @@ class HistoryActivity : AppCompatActivity() {
         enableEdgeToEdge()
         binding = ActivityHistoryBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
         
         historyRepository = HistoryRepository.getInstance(this)
         roleRepository = RoleRepository.getInstance(this)
@@ -91,6 +95,20 @@ class HistoryActivity : AppCompatActivity() {
 
         setupHistoryList()
         checkExportPermission()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        nfcAdapter?.enableReaderMode(this, { },
+            NfcAdapter.FLAG_READER_NFC_A or NfcAdapter.FLAG_READER_NFC_B or 
+            NfcAdapter.FLAG_READER_NFC_F or NfcAdapter.FLAG_READER_NFC_V or 
+            NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS or
+            NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK, null)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        nfcAdapter?.disableReaderMode(this)
     }
 
     private fun setupRecyclerView() {

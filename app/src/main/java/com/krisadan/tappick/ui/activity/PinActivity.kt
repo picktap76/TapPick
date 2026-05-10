@@ -2,6 +2,7 @@ package com.krisadan.tappick.ui.activity
 
 import android.app.Activity
 import android.content.Intent
+import android.nfc.NfcAdapter
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -16,6 +17,7 @@ class PinActivity : AppCompatActivity() {
     private lateinit var binding: ActivityPinBinding
     private lateinit var memberRepository: MemberRepository
     private lateinit var sessionManager: SessionManager
+    private var nfcAdapter: NfcAdapter? = null
     private var currentPin = ""
     private var isLoginMode = true
 
@@ -23,6 +25,8 @@ class PinActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityPinBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
 
         memberRepository = MemberRepository.getInstance(this)
         sessionManager = SessionManager.getInstance(this)
@@ -42,6 +46,20 @@ class PinActivity : AppCompatActivity() {
             startActivity(intent)
             finish()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        nfcAdapter?.enableReaderMode(this, { },
+            NfcAdapter.FLAG_READER_NFC_A or NfcAdapter.FLAG_READER_NFC_B or 
+            NfcAdapter.FLAG_READER_NFC_F or NfcAdapter.FLAG_READER_NFC_V or 
+            NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS or
+            NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK, null)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        nfcAdapter?.disableReaderMode(this)
     }
 
     private fun setupKeypad() {

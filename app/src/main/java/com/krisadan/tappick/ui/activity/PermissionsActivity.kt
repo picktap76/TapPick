@@ -1,5 +1,6 @@
 package com.krisadan.tappick.ui.activity
 
+import android.nfc.NfcAdapter
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -29,6 +30,7 @@ class PermissionsActivity : AppCompatActivity() {
     private lateinit var productRepository: ProductRepository
     private lateinit var roleRepository: RoleRepository
     private lateinit var settingsRepository: SettingsRepository
+    private var nfcAdapter: NfcAdapter? = null
     
     private var selectedRole: Role? = null
     private var roles: List<Role> = emptyList()
@@ -40,6 +42,8 @@ class PermissionsActivity : AppCompatActivity() {
         enableEdgeToEdge()
         binding = ActivityPermissionsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
         
         productRepository = ProductRepository.getInstance(this)
         roleRepository = RoleRepository.getInstance(this)
@@ -70,6 +74,20 @@ class PermissionsActivity : AppCompatActivity() {
 
         updateResetSummary()
         loadRoles()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        nfcAdapter?.enableReaderMode(this, { },
+            NfcAdapter.FLAG_READER_NFC_A or NfcAdapter.FLAG_READER_NFC_B or 
+            NfcAdapter.FLAG_READER_NFC_F or NfcAdapter.FLAG_READER_NFC_V or 
+            NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS or
+            NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK, null)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        nfcAdapter?.disableReaderMode(this)
     }
 
     private fun updateResetSummary() {

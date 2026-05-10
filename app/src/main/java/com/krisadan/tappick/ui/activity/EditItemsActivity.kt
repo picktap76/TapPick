@@ -1,6 +1,7 @@
 package com.krisadan.tappick.ui.activity
 
 import android.net.Uri
+import android.nfc.NfcAdapter
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -27,6 +28,7 @@ class EditItemsActivity : AppCompatActivity() {
     private lateinit var repository: ProductRepository
     private lateinit var historyRepository: HistoryRepository
     private lateinit var adapter: EditProductAdapter
+    private var nfcAdapter: NfcAdapter? = null
     
     private var selectedProductForImage: Product? = null
     private var newProductImageUri: String? = null
@@ -60,6 +62,8 @@ class EditItemsActivity : AppCompatActivity() {
         binding = ActivityEditItemsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
+        
         repository = ProductRepository.getInstance(this)
         historyRepository = HistoryRepository.getInstance(this)
 
@@ -89,6 +93,20 @@ class EditItemsActivity : AppCompatActivity() {
         })
 
         setupProductList()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        nfcAdapter?.enableReaderMode(this, { },
+            NfcAdapter.FLAG_READER_NFC_A or NfcAdapter.FLAG_READER_NFC_B or 
+            NfcAdapter.FLAG_READER_NFC_F or NfcAdapter.FLAG_READER_NFC_V or 
+            NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS or
+            NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK, null)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        nfcAdapter?.disableReaderMode(this)
     }
 
     private fun setupRecyclerView() {

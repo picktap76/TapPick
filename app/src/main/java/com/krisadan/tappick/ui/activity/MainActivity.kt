@@ -1,6 +1,8 @@
 package com.krisadan.tappick.ui.activity
 
 import android.content.Intent
+import android.nfc.NfcAdapter
+import android.nfc.Tag
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -35,12 +37,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var historyRepository: HistoryRepository
     private lateinit var sessionManager: SessionManager
     private lateinit var adapter: MainProductAdapter
+    private var nfcAdapter: NfcAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
         
         repository = ProductRepository.getInstance(this)
         memberRepository = MemberRepository.getInstance(this)
@@ -79,6 +84,12 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         
+        nfcAdapter?.enableReaderMode(this, { },
+            NfcAdapter.FLAG_READER_NFC_A or NfcAdapter.FLAG_READER_NFC_B or 
+            NfcAdapter.FLAG_READER_NFC_F or NfcAdapter.FLAG_READER_NFC_V or 
+            NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS or
+            NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK, null)
+
         val members = memberRepository.getMembers()
         val authRequired = if (members.isEmpty()) false else !sessionManager.isLoggedIn()
 
@@ -89,6 +100,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         refreshProducts(binding.etSearch.text.toString())
+    }
+
+    override fun onPause() {
+        super.onPause()
+        nfcAdapter?.disableReaderMode(this)
     }
 
     override fun onDestroy() {

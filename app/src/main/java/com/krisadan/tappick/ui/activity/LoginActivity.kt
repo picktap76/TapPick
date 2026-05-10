@@ -78,7 +78,7 @@ class LoginActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
     }
 
     override fun onTagDiscovered(tag: Tag?) {
-        val id = tag?.id?.joinToString("") { "%02x".format(it) }?.uppercase() ?: return
+        val id = tag?.id?.joinToString("") { "%02X".format(it.toInt() and 0xFF) } ?: return
         runOnUiThread {
             handleNfcScanned(id)
         }

@@ -132,7 +132,8 @@ class MembersActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         nfcAdapter?.enableReaderMode(this, this, 
             NfcAdapter.FLAG_READER_NFC_A or NfcAdapter.FLAG_READER_NFC_B or 
             NfcAdapter.FLAG_READER_NFC_F or NfcAdapter.FLAG_READER_NFC_V or 
-            NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS, null)
+            NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS or
+            NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK, null)
     }
 
     override fun onPause() {
@@ -141,7 +142,7 @@ class MembersActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
     }
 
     override fun onTagDiscovered(tag: Tag?) {
-        val id = tag?.id?.joinToString("") { "%02x".format(it) }?.uppercase() ?: return
+        val id = tag?.id?.joinToString("") { "%02X".format(it.toInt() and 0xFF) } ?: return
         if (isWaitingForNfc) {
             runOnUiThread { onNfcScanned?.invoke(id) }
         }
