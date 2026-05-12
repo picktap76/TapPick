@@ -148,7 +148,7 @@ class SunmiPrinterHelper private constructor(private val context: Context) {
                 initLine(BaseStyle.getStyle().setAlign(Align.CENTER))
                 printText("ขอบคุณที่ใช้บริการ", TextStyle.getStyle().setTextSize(24))
 
-                repeat(4) {
+                repeat(1) {
                     printText(" \n", TextStyle.getStyle())
                 }
 

@@ -6,16 +6,17 @@ import android.content.Intent
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.transition.AutoTransition
 import android.transition.Fade
 import android.transition.TransitionManager
 import android.transition.TransitionSet
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.ArrayAdapter
+import android.widget.Filter
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -29,6 +30,7 @@ import com.krisadan.tappick.data.model.Role
 import com.krisadan.tappick.data.repository.HistoryRepository
 import com.krisadan.tappick.data.repository.MemberRepository
 import com.krisadan.tappick.data.repository.RoleRepository
+import com.krisadan.tappick.data.repository.SessionManager
 import com.krisadan.tappick.databinding.ActivityMembersBinding
 import com.krisadan.tappick.databinding.BottomSheetAddMemberBinding
 import com.krisadan.tappick.databinding.ItemRoleDropdownBinding
@@ -42,6 +44,7 @@ class MembersActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
     private lateinit var memberRepository: MemberRepository
     private lateinit var roleRepository: RoleRepository
     private lateinit var historyRepository: HistoryRepository
+    private lateinit var sessionManager: SessionManager
     private var nfcAdapter: NfcAdapter? = null
     
     private lateinit var paginationHelper: PaginationHelper<Member>
@@ -86,6 +89,7 @@ class MembersActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         memberRepository = MemberRepository.getInstance(this)
         roleRepository = RoleRepository.getInstance(this)
         historyRepository = HistoryRepository.getInstance(this)
+        sessionManager = SessionManager.getInstance(this)
         
         roles = roleRepository.getRoles()
         setupRecyclerView()
@@ -180,11 +184,29 @@ class MembersActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         
         sheetBinding.tvFormTitle.text = "แก้ไขข้อมูลสมาชิก"
         sheetBinding.etMemberName.setText(member.name)
+        sheetBinding.etMemberEmail.setText(member.email ?: "")
         sheetBinding.btnAddMemberConfirm.text = "บันทึกการแก้ไข"
         
         sheetBinding.btnSetPin.visibility = View.GONE
         sheetBinding.btnScanNfc.visibility = View.GONE
         sheetBinding.tvStatus.visibility = View.GONE
+
+        sheetBinding.llAdminOnlyPin.visibility = View.VISIBLE
+        sheetBinding.etMemberPin.setText(member.pin)
+        
+        var isPinVisible = false
+        sheetBinding.btnTogglePinVisibility.setOnClickListener {
+            isPinVisible = !isPinVisible
+            if (isPinVisible) {
+                sheetBinding.etMemberPin.inputType = android.text.InputType.TYPE_CLASS_NUMBER
+                sheetBinding.btnTogglePinVisibility.setImageResource(R.drawable.ic_visibility_off)
+            } else {
+                sheetBinding.etMemberPin.inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_VARIATION_PASSWORD
+                sheetBinding.btnTogglePinVisibility.setImageResource(R.drawable.ic_visibility)
+            }
+            
+            sheetBinding.etMemberPin.setSelection(sheetBinding.etMemberPin.text.length)
+        }
 
         val adapter = RoleDropdownAdapter(this, roles)
         sheetBinding.actvRole.setAdapter(adapter)
@@ -202,12 +224,28 @@ class MembersActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
 
         sheetBinding.btnAddMemberConfirm.setOnClickListener {
             val name = sheetBinding.etMemberName.text.toString().trim()
+            val email = sheetBinding.etMemberEmail.text.toString().trim()
             val roleId = selectedRole?.id
 
             if (name.isNotEmpty() && roleId != null) {
+                if (roleId == "admin_role" && email.isEmpty()) {
+                    ToastHelper.showToast(this, "ผู้ดูแลระบบต้องระบุอีเมล")
+                    return@setOnClickListener
+                }
+
                 val oldName = member.name
                 member.name = name
+                member.email = if (email.isEmpty()) null else email
                 member.roleId = roleId
+                
+                val newPin = sheetBinding.etMemberPin.text.toString()
+                if (newPin.length == 4) {
+                    member.pin = newPin
+                } else {
+                    ToastHelper.showToast(this, "รหัส PIN ต้องมี 4 หลัก")
+                    return@setOnClickListener
+                }
+
                 memberRepository.updateMember(member)
                 
                 if (oldName != name) {
@@ -336,15 +374,22 @@ class MembersActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
 
         sheetBinding.btnAddMemberConfirm.setOnClickListener {
             val name = sheetBinding.etMemberName.text.toString().trim()
+            val email = sheetBinding.etMemberEmail.text.toString().trim()
             val roleId = selectedRoleForNewMember?.id
             val pin = tempPin
 
             if (name.isNotEmpty() && roleId != null && pin != null) {
+                if (roleId == "admin_role" && email.isEmpty()) {
+                    ToastHelper.showToast(this, "ผู้ดูแลระบบต้องระบุอีเมล")
+                    return@setOnClickListener
+                }
+
                 val newMember = Member(
                     nfcId = tempNfcId,
                     name = name, 
                     roleId = roleId,
-                    pin = pin
+                    pin = pin,
+                    email = if (email.isEmpty()) null else email
                 )
                 memberRepository.addMember(newMember)
                 loadMembers()

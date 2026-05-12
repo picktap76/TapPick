@@ -5,7 +5,6 @@ import android.nfc.NfcAdapter
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -13,7 +12,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.krisadan.tappick.R
 import com.krisadan.tappick.data.model.Product
 import com.krisadan.tappick.data.repository.HistoryRepository
 import com.krisadan.tappick.data.repository.ProductRepository

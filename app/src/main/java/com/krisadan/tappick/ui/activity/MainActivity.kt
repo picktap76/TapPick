@@ -2,7 +2,6 @@ package com.krisadan.tappick.ui.activity
 
 import android.content.Intent
 import android.nfc.NfcAdapter
-import android.nfc.Tag
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -10,8 +9,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.recyclerview.widget.RecyclerView
-import com.krisadan.tappick.R
 import com.krisadan.tappick.data.model.HistoryEntry
 import com.krisadan.tappick.data.model.Member
 import com.krisadan.tappick.data.model.TransactionItem
@@ -144,8 +141,10 @@ class MainActivity : AppCompatActivity() {
             } else {
                 val memberId = effectiveMember.id
                 for (product in filteredProducts) {
-                    val maxQty = role.permissions[product.id] ?: 0
-                    val usedQty = historyRepository.getWeeklyUsageCount(memberId, product.id)
+                    val maxQty = role.getPermissionsMap()[product.id] ?: 0
+                    val config = role.getQuotaConfigsMap()[product.id] ?: com.krisadan.tappick.data.model.QuotaConfig()
+                    val sinceTs = historyRepository.getStartTimeForConfig(config)
+                    val usedQty = historyRepository.getUsageCountSince(memberId, product.id, sinceTs)
                     remainingCounts[product.id] = (maxQty - usedQty).coerceAtLeast(0)
                 }
             }

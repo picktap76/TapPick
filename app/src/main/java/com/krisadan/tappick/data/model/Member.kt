@@ -7,5 +7,6 @@ data class Member(
     val nfcId: String? = null,
     var name: String,
     var roleId: String, 
-    var pin: String = ""
+    var pin: String = "",
+    var email: String? = null
 )

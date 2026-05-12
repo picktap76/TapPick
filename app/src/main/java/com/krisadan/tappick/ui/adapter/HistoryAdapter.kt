@@ -5,11 +5,11 @@ import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.krisadan.tappick.data.model.HistoryEntry
 import com.krisadan.tappick.data.model.Role
 import com.krisadan.tappick.databinding.ItemHistoryRowBinding
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 class HistoryAdapter(
     private var flattenedItems: List<HistoryRowData>,

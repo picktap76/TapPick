@@ -4,21 +4,38 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <TextView
-        android:id="@+id/tvItemName"
+    <LinearLayout
+        android:id="@+id/llTextInfo"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="น้ำแข็ง"
-        android:textColor="@color/text_title"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:maxLines="1"
-        android:ellipsize="end"
+        android:orientation="vertical"
         android:layout_marginEnd="8dp"
         app:layout_constraintBottom_toBottomOf="@id/llQuantityControl"
         app:layout_constraintEnd_toStartOf="@id/llQuantityControl"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/llQuantityControl" />
+        app:layout_constraintTop_toTopOf="@id/llQuantityControl">
+
+        <TextView
+            android:id="@+id/tvItemName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="น้ำแข็ง"
+            android:textColor="@color/text_title"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/tvResetInterval"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="รีเซ็ตทุก 1 สัปดาห์"
+            android:textColor="@color/primary_blue"
+            android:textSize="12sp"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/llQuantityControl"

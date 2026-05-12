@@ -4,7 +4,6 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
-import android.graphics.Path
 import android.net.Uri
 import android.text.Spannable
 import android.text.SpannableString

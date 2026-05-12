@@ -14,7 +14,7 @@ import java.util.Locale
 
 object GoogleSheetsHelper {
     private const val TAG = "GoogleSheetsHelper"
-    private const val WEB_APP_URL = "https://script.google.com/macros/s/AKfycby-nHfeVO7DSfhb9HP_KVrPhrrJzSIh4cj_E4C5opMduORateuI7Pt_xB4JsoBUxxJq/exec"
+    private const val WEB_APP_URL = "https://script.google.com/macros/s/AKfycby4nHVDI4TuwYhEns4Zx04BZbakC1PbDCTvh09BP9eAkBF3dBp8U7q3MByr4RZdsAiL/exec"
     
     private val client = OkHttpClient.Builder()
         .followRedirects(true)
@@ -70,6 +70,31 @@ object GoogleSheetsHelper {
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Network Error: ${e.message}", e)
+            }
+        }.start()
+    }
+
+    fun requestPinReset(email: String, memberName: String, pin: String, onResult: (Boolean) -> Unit) {
+        val jsonBody = JsonObject().apply {
+            addProperty("action", "forgot_pin")
+            addProperty("email", email)
+            addProperty("name", memberName)
+            addProperty("pin", pin)
+        }
+
+        val body = jsonBody.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
+        val request = Request.Builder()
+            .url(WEB_APP_URL)
+            .post(body)
+            .build()
+
+        Thread {
+            try {
+                client.newCall(request).execute().use { response ->
+                    onResult(response.isSuccessful)
+                }
+            } catch (e: Exception) {
+                onResult(false)
             }
         }.start()
     }

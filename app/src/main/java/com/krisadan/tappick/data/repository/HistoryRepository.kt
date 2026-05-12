@@ -5,11 +5,9 @@ import android.content.SharedPreferences
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.krisadan.tappick.data.model.HistoryEntry
-import java.util.Calendar
 
 class HistoryRepository private constructor(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("tappick_history_prefs", Context.MODE_PRIVATE)
-    private val settingsRepository = SettingsRepository.getInstance(context)
     private val gson = Gson()
     
     private var cachedHistory: MutableList<HistoryEntry>? = null
@@ -38,41 +36,24 @@ class HistoryRepository private constructor(context: Context) {
         return cachedHistory ?: emptyList()
     }
 
-    fun getWeeklyUsageCount(memberId: String, productId: String): Int {
-        val startOfWeek = getResetTimestamp()
+    fun getUsageCountSince(memberId: String, productId: String, sinceTimestamp: Long): Int {
         return getHistory()
-            .filter { it.memberId == memberId && it.timestamp >= startOfWeek }
+            .filter { it.memberId == memberId && it.timestamp >= sinceTimestamp }
             .flatMap { it.items }
             .filter { it.productId == productId }
             .sumOf { it.quantity }
     }
 
-    private fun getResetTimestamp(): Long {
-        val resetDay = settingsRepository.getResetDay()
-        val resetHour = settingsRepository.getResetHour()
-        val resetMinute = settingsRepository.getResetMinute()
-
-        val now = Calendar.getInstance()
-        val resetTime = Calendar.getInstance()
-        
-        resetTime.set(Calendar.HOUR_OF_DAY, resetHour)
-        resetTime.set(Calendar.MINUTE, resetMinute)
-        resetTime.set(Calendar.SECOND, 0)
-        resetTime.set(Calendar.MILLISECOND, 0)
-        
-        val currentDayOfWeek = now.get(Calendar.DAY_OF_WEEK)
-
-        var daysToSubtract = (currentDayOfWeek - resetDay + 7) % 7
-
-        if (daysToSubtract == 0) {
-            if (now.before(resetTime)) {
-                daysToSubtract = 7
-            }
+    fun getStartTimeForConfig(config: com.krisadan.tappick.data.model.QuotaConfig): Long {
+        val intervalMillis = when (config.intervalUnit) {
+            com.krisadan.tappick.data.model.QuotaUnit.MINUTE -> config.intervalValue * 60 * 1000L
+            com.krisadan.tappick.data.model.QuotaUnit.HOUR -> config.intervalValue * 60 * 60 * 1000L
+            com.krisadan.tappick.data.model.QuotaUnit.DAY -> config.intervalValue * 24 * 60 * 60 * 1000L
+            com.krisadan.tappick.data.model.QuotaUnit.WEEK -> config.intervalValue * 7 * 24 * 60 * 60 * 1000L
+            com.krisadan.tappick.data.model.QuotaUnit.MONTH -> config.intervalValue * 30 * 24 * 60 * 60 * 1000L
+            com.krisadan.tappick.data.model.QuotaUnit.YEAR -> config.intervalValue * 365 * 24 * 60 * 60 * 1000L
         }
-        
-        resetTime.add(Calendar.DAY_OF_YEAR, -daysToSubtract)
-        
-        return resetTime.timeInMillis
+        return System.currentTimeMillis() - intervalMillis
     }
 
     fun addEntry(entry: HistoryEntry) {

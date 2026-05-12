@@ -6,6 +6,7 @@ data class Role(
     val id: String = UUID.randomUUID().toString(),
     var name: String,
     var permissions: MutableMap<String, Int> = mutableMapOf(), 
+    var quotaConfigs: MutableMap<String, QuotaConfig> = mutableMapOf(),
     val isDeletable: Boolean = true,
     var color: String = "#0055D4" 
 ) {
@@ -15,5 +16,12 @@ data class Role(
             permissions = mutableMapOf()
         }
         return permissions
+    }
+
+    fun getQuotaConfigsMap(): MutableMap<String, QuotaConfig> {
+        if (quotaConfigs == null) {
+            quotaConfigs = mutableMapOf()
+        }
+        return quotaConfigs
     }
 }

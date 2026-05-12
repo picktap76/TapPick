@@ -17,19 +17,17 @@ import com.krisadan.tappick.R
 import com.krisadan.tappick.data.model.Role
 import com.krisadan.tappick.data.repository.ProductRepository
 import com.krisadan.tappick.data.repository.RoleRepository
-import com.krisadan.tappick.data.repository.SettingsRepository
 import com.krisadan.tappick.databinding.ActivityPermissionsBinding
 import com.krisadan.tappick.databinding.BottomSheetAddPermissionBinding
+import com.krisadan.tappick.databinding.BottomSheetQuotaConfigBinding
 import com.krisadan.tappick.databinding.ItemPermissionQuantityBinding
 import com.krisadan.tappick.databinding.ItemRoleDropdownBinding
 import com.krisadan.tappick.util.ToastHelper
-import java.util.Calendar
 
 class PermissionsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityPermissionsBinding
     private lateinit var productRepository: ProductRepository
     private lateinit var roleRepository: RoleRepository
-    private lateinit var settingsRepository: SettingsRepository
     private var nfcAdapter: NfcAdapter? = null
     
     private var selectedRole: Role? = null
@@ -47,7 +45,6 @@ class PermissionsActivity : AppCompatActivity() {
         
         productRepository = ProductRepository.getInstance(this)
         roleRepository = RoleRepository.getInstance(this)
-        settingsRepository = SettingsRepository.getInstance(this)
         
         ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -68,11 +65,6 @@ class PermissionsActivity : AppCompatActivity() {
             role?.let { selectRole(it) }
         }
 
-        binding.btnEditReset.setOnClickListener {
-            showResetScheduleDialog()
-        }
-
-        updateResetSummary()
         loadRoles()
     }
 
@@ -88,48 +80,6 @@ class PermissionsActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         nfcAdapter?.disableReaderMode(this)
-    }
-
-    private fun updateResetSummary() {
-        val dayName = settingsRepository.getResetDayName()
-        val hour = settingsRepository.getResetHour()
-        val minute = settingsRepository.getResetMinute()
-        val timeStr = String.format("%02d:%02d", hour, minute)
-        binding.tvResetSummary.text = "รีเซ็ตทุก$dayName เวลา $timeStr"
-    }
-
-    private fun showResetScheduleDialog() {
-        val days = arrayOf("วันอาทิตย์", "วันจันทร์", "วันอังคาร", "วันพุธ", "วันพฤหัสบดี", "วันศุกร์", "วันเสาร์")
-        val calendarDays = intArrayOf(Calendar.SUNDAY, Calendar.MONDAY, Calendar.TUESDAY, Calendar.WEDNESDAY, Calendar.THURSDAY, Calendar.FRIDAY, Calendar.SATURDAY)
-        
-        val currentDay = settingsRepository.getResetDay()
-        val currentDayIndex = calendarDays.indexOf(currentDay).coerceAtLeast(0)
-
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("เลือกวันและเวลาที่รีเซ็ตสิทธิ์")
-            .setSingleChoiceItems(days, currentDayIndex) { dialog, which ->
-                val selectedDay = calendarDays[which]
-                showTimePickerDialog(selectedDay)
-                dialog.dismiss()
-            }
-            .setNegativeButton("ยกเลิก", null)
-            .show()
-    }
-
-    private fun showTimePickerDialog(selectedDay: Int) {
-        val currentHour = settingsRepository.getResetHour()
-        val currentMinute = settingsRepository.getResetMinute()
-
-        val timePicker = android.app.TimePickerDialog(this, { _, hour, minute ->
-            settingsRepository.setResetDay(selectedDay)
-            settingsRepository.setResetHour(hour)
-            settingsRepository.setResetMinute(minute)
-            updateResetSummary()
-            ToastHelper.showToast(this, "บันทึกกำหนดการรีเซ็ตเรียบร้อย")
-        }, currentHour, currentMinute, true)
-        
-        timePicker.setTitle("เลือกเวลารีเซ็ต")
-        timePicker.show()
     }
 
     private fun loadRoles() {
@@ -270,12 +220,22 @@ class PermissionsActivity : AppCompatActivity() {
         }
 
         val permissions = role.getPermissionsMap()
+        val configs = role.getQuotaConfigsMap()
 
         for (product in products) {
             val itemBinding = ItemPermissionQuantityBinding.inflate(layoutInflater, binding.llPermissionsList, false)
             itemBinding.tvItemName.text = product.name
             var qty = permissions[product.id] ?: 0
             itemBinding.tvQuantity.text = qty.toString()
+
+            val config = configs[product.id] ?: com.krisadan.tappick.data.model.QuotaConfig()
+            itemBinding.tvResetInterval.text = "รีเซ็ตทุก ${config.intervalValue} ${config.intervalUnit.toThai()}"
+            
+            itemBinding.tvResetInterval.setOnClickListener {
+                showQuotaConfigDialog(product, role) {
+                    setupPermissionsList()
+                }
+            }
 
             itemBinding.btnPlus.setOnClickListener {
                 qty++
@@ -295,6 +255,45 @@ class PermissionsActivity : AppCompatActivity() {
 
             binding.llPermissionsList.addView(itemBinding.root)
         }
+    }
+
+    private fun showQuotaConfigDialog(product: com.krisadan.tappick.data.model.Product, role: com.krisadan.tappick.data.model.Role, onUpdated: () -> Unit) {
+        val configs = role.getQuotaConfigsMap()
+        val config = configs[product.id] ?: com.krisadan.tappick.data.model.QuotaConfig()
+        
+        val bottomSheetDialog = com.google.android.material.bottomsheet.BottomSheetDialog(this)
+        val sheetBinding = BottomSheetQuotaConfigBinding.inflate(layoutInflater)
+        bottomSheetDialog.setContentView(sheetBinding.root)
+        
+        sheetBinding.tvProductName.text = product.name
+        sheetBinding.etIntervalValue.setText(config.intervalValue.toString())
+        
+        val units = com.krisadan.tappick.data.model.QuotaUnit.entries.toTypedArray()
+        var selectedUnit = config.intervalUnit
+        
+        val unitAdapter = UnitAdapter(this, units.toList(), selectedUnit)
+        sheetBinding.actvUnit.setAdapter(unitAdapter)
+        sheetBinding.actvUnit.setText(selectedUnit.toThai(), false)
+        
+        sheetBinding.actvUnit.setOnItemClickListener { _, _, position, _ ->
+            selectedUnit = unitAdapter.getItem(position) ?: com.krisadan.tappick.data.model.QuotaUnit.WEEK
+            unitAdapter.updateSelectedUnit(selectedUnit)
+        }
+
+        sheetBinding.btnCancel.setOnClickListener {
+            bottomSheetDialog.dismiss()
+        }
+
+        sheetBinding.btnSave.setOnClickListener {
+            val value = sheetBinding.etIntervalValue.text.toString().toIntOrNull() ?: 1
+            configs[product.id] = com.krisadan.tappick.data.model.QuotaConfig(value, selectedUnit)
+            roleRepository.updateRole(role)
+            onUpdated()
+            bottomSheetDialog.dismiss()
+            ToastHelper.showToast(this, "บันทึกการตั้งค่าเรียบร้อย")
+        }
+        
+        bottomSheetDialog.show()
     }
 
     private fun showAddPermissionBottomSheet() {
@@ -380,6 +379,67 @@ class PermissionsActivity : AppCompatActivity() {
         }
 
         bottomSheetDialog.show()
+    }
+
+    private inner class UnitAdapter(context: android.content.Context, private val unitsList: List<com.krisadan.tappick.data.model.QuotaUnit>, private var selectedUnit: com.krisadan.tappick.data.model.QuotaUnit) :
+        android.widget.ArrayAdapter<com.krisadan.tappick.data.model.QuotaUnit>(context, R.layout.item_role_dropdown, unitsList) {
+
+        fun updateSelectedUnit(unit: com.krisadan.tappick.data.model.QuotaUnit) {
+            selectedUnit = unit
+            notifyDataSetChanged()
+        }
+
+        override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
+            return getView(position, convertView, parent)
+        }
+
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+            val rowBinding = if (convertView == null) {
+                ItemRoleDropdownBinding.inflate(LayoutInflater.from(context), parent, false)
+            } else {
+                ItemRoleDropdownBinding.bind(convertView)
+            }
+            
+            val unit = getItem(position)
+            rowBinding.tvRoleName.text = unit?.toThai()
+            rowBinding.root.isClickable = false
+            rowBinding.root.isFocusable = false
+
+            val isSelected = unit == selectedUnit
+            if (isSelected) {
+                rowBinding.root.setBackgroundColor(context.getColor(R.color.primary_blue_light))
+                rowBinding.tvRoleName.setTextColor(context.getColor(R.color.primary_blue))
+                rowBinding.ivCheck.visibility = View.VISIBLE
+            } else {
+                rowBinding.root.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                rowBinding.tvRoleName.setTextColor(context.getColor(R.color.text_title))
+                rowBinding.ivCheck.visibility = View.GONE
+            }
+
+            rowBinding.btnEditRole.visibility = View.GONE
+            rowBinding.btnDeleteRole.visibility = View.GONE
+
+            return rowBinding.root
+        }
+
+        override fun getFilter(): android.widget.Filter {
+            return object : android.widget.Filter() {
+                override fun performFiltering(constraint: CharSequence?): FilterResults {
+                    val results = FilterResults()
+                    results.values = unitsList
+                    results.count = unitsList.size
+                    return results
+                }
+
+                override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
+                    notifyDataSetChanged()
+                }
+
+                override fun convertResultToString(resultValue: Any?): CharSequence {
+                    return (resultValue as com.krisadan.tappick.data.model.QuotaUnit).toThai()
+                }
+            }
+        }
     }
 
     private inner class RoleAdapter(context: android.content.Context, private val rolesList: List<Role>) :

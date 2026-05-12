@@ -1,11 +1,9 @@
 package com.krisadan.tappick.util
 
 import android.content.Context
-import android.graphics.Color
 import android.graphics.Typeface
 import android.text.InputType
 import android.view.Gravity
-import android.view.View
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView

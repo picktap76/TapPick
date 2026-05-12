@@ -9,9 +9,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.krisadan.tappick.data.repository.MemberRepository
 import com.krisadan.tappick.data.repository.SessionManager
 import com.krisadan.tappick.databinding.ActivityLoginBinding
+import com.krisadan.tappick.databinding.BottomSheetForgotPinBinding
 import com.krisadan.tappick.util.NfcSimulationHelper
 import com.krisadan.tappick.util.ToastHelper
 
@@ -61,6 +63,50 @@ class LoginActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
             startActivity(intent)
             finish()
         }
+
+        binding.btnForgotPin.setOnClickListener {
+            showForgotPinDialog()
+        }
+    }
+
+    private fun showForgotPinDialog() {
+        val bottomSheetDialog = BottomSheetDialog(this)
+        val sheetBinding = BottomSheetForgotPinBinding.inflate(layoutInflater)
+        bottomSheetDialog.setContentView(sheetBinding.root)
+
+        sheetBinding.btnCancel.setOnClickListener {
+            bottomSheetDialog.dismiss()
+        }
+
+        sheetBinding.btnSend.setOnClickListener {
+            val email = sheetBinding.etEmail.text.toString().trim()
+            if (email.isNotEmpty()) {
+                val member = memberRepository.getMembers().find { it.email?.equals(email, ignoreCase = true) == true }
+                if (member != null) {
+                    sheetBinding.btnSend.isEnabled = false
+                    sheetBinding.btnSend.text = "กำลังส่ง..."
+                    
+                    com.krisadan.tappick.util.GoogleSheetsHelper.requestPinReset(email, member.name, member.pin) { success ->
+                        runOnUiThread {
+                            if (success) {
+                                ToastHelper.showToast(this, "ส่งรหัส PIN ไปที่ $email เรียบร้อยแล้ว")
+                                bottomSheetDialog.dismiss()
+                            } else {
+                                sheetBinding.btnSend.isEnabled = true
+                                sheetBinding.btnSend.text = "ส่งคำขอ"
+                                ToastHelper.showToast(this, "เกิดข้อผิดพลาดในการส่ง กรุณาลองใหม่")
+                            }
+                        }
+                    }
+                } else {
+                    ToastHelper.showToast(this, "ไม่พบอีเมลนี้ในระบบ")
+                }
+            } else {
+                ToastHelper.showToast(this, "กรุณากรอกอีเมล")
+            }
+        }
+
+        bottomSheetDialog.show()
     }
 
     override fun onResume() {
