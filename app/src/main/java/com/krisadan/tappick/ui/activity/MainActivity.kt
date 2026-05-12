@@ -35,6 +35,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var sessionManager: SessionManager
     private lateinit var adapter: MainProductAdapter
     private var nfcAdapter: NfcAdapter? = null
+    private val searchHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var searchRunnable: Runnable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,7 +70,12 @@ class MainActivity : AppCompatActivity() {
         binding.etSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                refreshProducts(s?.toString() ?: "")
+                searchRunnable?.let { searchHandler.removeCallbacks(it) }
+                searchRunnable = Runnable {
+                    refreshProducts(s?.toString() ?: "")
+                }.also {
+                    searchHandler.postDelayed(it, 300)
+                }
             }
             override fun afterTextChanged(s: Editable?) {}
         })

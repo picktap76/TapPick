@@ -20,6 +20,7 @@ class PinActivity : AppCompatActivity() {
     private var nfcAdapter: NfcAdapter? = null
     private var currentPin = ""
     private var isLoginMode = true
+    private var isProcessing = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,6 +32,9 @@ class PinActivity : AppCompatActivity() {
         memberRepository = MemberRepository.getInstance(this)
         sessionManager = SessionManager.getInstance(this)
 
+        Thread {
+            memberRepository.getMembers()
+        }.start()
         
         isLoginMode = callingActivity == null
 
@@ -70,15 +74,20 @@ class PinActivity : AppCompatActivity() {
 
         digitButtons.forEach { button ->
             button.setOnClickListener {
+                if (isProcessing) return@setOnClickListener
                 if (currentPin.length < 4) {
                     currentPin += button.text
                     updatePinDots()
                     if (currentPin.length == 4) {
-                        if (isLoginMode) {
-                            handleLogin()
-                        } else {
-                            finishWithResult()
-                        }
+                        isProcessing = true
+                        binding.root.postDelayed({
+                            if (isLoginMode) {
+                                handleLogin()
+                            } else {
+                                finishWithResult()
+                            }
+                            isProcessing = false
+                        }, 150)
                     }
                 }
             }

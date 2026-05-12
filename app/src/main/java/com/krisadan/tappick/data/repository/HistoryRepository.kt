@@ -54,13 +54,16 @@ class HistoryRepository private constructor(context: Context) {
         }
 
         val result = mutableMapOf<String, Int>()
-        val memberHistory = history.filter { it.memberId == memberId }
+        
+        val earliestStart = startTimes.values.minOrNull() ?: return emptyMap()
 
-        memberHistory.forEach { entry ->
-            entry.items.forEach { item ->
-                val startTime = startTimes[item.productId]
-                if (startTime != null && entry.timestamp >= startTime) {
-                    result[item.productId] = (result[item.productId] ?: 0) + item.quantity
+        history.forEach { entry ->
+            if (entry.memberId == memberId && entry.timestamp >= earliestStart) {
+                entry.items.forEach { item ->
+                    val startTime = startTimes[item.productId]
+                    if (startTime != null && entry.timestamp >= startTime) {
+                        result[item.productId] = (result[item.productId] ?: 0) + item.quantity
+                    }
                 }
             }
         }

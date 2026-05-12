@@ -312,26 +312,42 @@ class HistoryActivity : AppCompatActivity() {
     }
 
     private fun saveXlsxToFile(uri: android.net.Uri) {
-        try {
-            contentResolver.openOutputStream(uri)?.use { outputStream ->
-                val workbook = org.apache.poi.xssf.usermodel.XSSFWorkbook()
-                val sheet = workbook.createSheet("History")
-                
-                dataToExport.forEachIndexed { rowIndex, rowData ->
-                    val row = sheet.createRow(rowIndex)
-                    rowData.forEachIndexed { colIndex, cellData ->
-                        val cell = row.createCell(colIndex)
-                        cell.setCellValue(cellData)
+        binding.btnExport.isEnabled = false
+        val progressDialog = AlertDialog.Builder(this)
+            .setMessage("กำลังบันทึกไฟล์...")
+            .setCancelable(false)
+            .show()
+
+        Thread {
+            try {
+                contentResolver.openOutputStream(uri)?.use { outputStream ->
+                    val workbook = org.apache.poi.xssf.usermodel.XSSFWorkbook()
+                    val sheet = workbook.createSheet("History")
+                    
+                    dataToExport.forEachIndexed { rowIndex, rowData ->
+                        val row = sheet.createRow(rowIndex)
+                        rowData.forEachIndexed { colIndex, cellData ->
+                            val cell = row.createCell(colIndex)
+                            cell.setCellValue(cellData)
+                        }
                     }
+                    
+                    workbook.write(outputStream)
+                    workbook.close()
                 }
-                
-                workbook.write(outputStream)
-                workbook.close()
+                runOnUiThread {
+                    progressDialog.dismiss()
+                    binding.btnExport.isEnabled = true
+                    ToastHelper.showToast(this, "บันทึกไฟล์ XLSX เรียบร้อยแล้ว")
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                runOnUiThread {
+                    progressDialog.dismiss()
+                    binding.btnExport.isEnabled = true
+                    ToastHelper.showToast(this, "เกิดข้อผิดพลาดในการบันทึก: ${e.message}")
+                }
             }
-            ToastHelper.showToast(this, "บันทึกไฟล์ XLSX เรียบร้อยแล้ว")
-        } catch (e: Exception) {
-            e.printStackTrace()
-            ToastHelper.showToast(this, "เกิดข้อผิดพลาดในการบันทึก: ${e.message}")
-        }
+        }.start()
     }
 }

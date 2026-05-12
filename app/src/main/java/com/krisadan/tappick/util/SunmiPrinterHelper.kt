@@ -104,59 +104,61 @@ class SunmiPrinterHelper private constructor(private val context: Context) {
     }
 
     fun printReceipt(title: String, date: String, time: String, userName: String, items: List<com.krisadan.tappick.data.model.TransactionItem>) {
-        if (!isPrinterReady()) {
-            Log.e(TAG, "Printer not ready for receipt")
-            return
-        }
+        Thread {
+            try {
+                if (!isPrinterReady()) {
+                    Log.e(TAG, "Printer not ready for receipt")
+                    return@Thread
+                }
 
-        val lineApi = getLineApiInternal() ?: return
-        
-        try {
-            lineApi.apply {
-                val sep = "------------------------------"
+                val lineApi = getLineApiInternal() ?: return@Thread
+                
+                lineApi.apply {
+                    val sep = "------------------------------"
 
-                initLine(BaseStyle.getStyle().setAlign(Align.CENTER))
-                printText(title, TextStyle.getStyle().setTextSize(32).enableBold(true))
+                    initLine(BaseStyle.getStyle().setAlign(Align.CENTER))
+                    printText(title, TextStyle.getStyle().setTextSize(32).enableBold(true))
 
-                initLine(BaseStyle.getStyle().setAlign(Align.LEFT))
-                printText(sep, TextStyle.getStyle().setTextSize(24))
-
-                initLine(BaseStyle.getStyle().setAlign(Align.LEFT))
-                printText(formatLine("วันที่:", date), TextStyle.getStyle().setTextSize(24))
-                printText(formatLine("เวลา:", time), TextStyle.getStyle().setTextSize(24))
-                printText(formatLine("ผู้ใช้:", userName), TextStyle.getStyle().setTextSize(24))
-
-                printText(sep, TextStyle.getStyle().setTextSize(24))
-
-                printText("รายการเบิก:", TextStyle.getStyle().setTextSize(24).enableBold(true))
-
-                for (item in items) {
                     initLine(BaseStyle.getStyle().setAlign(Align.LEFT))
-                    val rawName = item.productName
-                    val itemName = if (getVisualWidth(rawName) > 18) {
-                        truncateThai(rawName, 15) + "..."
-                    } else {
-                        rawName
+                    printText(sep, TextStyle.getStyle().setTextSize(24))
+
+                    initLine(BaseStyle.getStyle().setAlign(Align.LEFT))
+                    printText(formatLine("วันที่:", date), TextStyle.getStyle().setTextSize(24))
+                    printText(formatLine("เวลา:", time), TextStyle.getStyle().setTextSize(24))
+                    printText(formatLine("ผู้ใช้:", userName), TextStyle.getStyle().setTextSize(24))
+
+                    printText(sep, TextStyle.getStyle().setTextSize(24))
+
+                    printText("รายการเบิก:", TextStyle.getStyle().setTextSize(24).enableBold(true))
+
+                    for (item in items) {
+                        initLine(BaseStyle.getStyle().setAlign(Align.LEFT))
+                        val rawName = item.productName
+                        val itemName = if (getVisualWidth(rawName) > 18) {
+                            truncateThai(rawName, 15) + "..."
+                        } else {
+                            rawName
+                        }
+                        val line = formatLine("- $itemName", "x${item.quantity}")
+                        printText(line, TextStyle.getStyle().setTextSize(24))
                     }
-                    val line = formatLine("- $itemName", "x${item.quantity}")
-                    printText(line, TextStyle.getStyle().setTextSize(24))
+
+                    initLine(BaseStyle.getStyle().setAlign(Align.LEFT))
+                    printText(sep, TextStyle.getStyle().setTextSize(24))
+
+                    initLine(BaseStyle.getStyle().setAlign(Align.CENTER))
+                    printText("ขอบคุณที่ใช้บริการ", TextStyle.getStyle().setTextSize(24))
+
+                    repeat(1) {
+                        printText(" \n", TextStyle.getStyle())
+                    }
+
+                    autoOut()
                 }
-
-                initLine(BaseStyle.getStyle().setAlign(Align.LEFT))
-                printText(sep, TextStyle.getStyle().setTextSize(24))
-
-                initLine(BaseStyle.getStyle().setAlign(Align.CENTER))
-                printText("ขอบคุณที่ใช้บริการ", TextStyle.getStyle().setTextSize(24))
-
-                repeat(1) {
-                    printText(" \n", TextStyle.getStyle())
-                }
-
-                autoOut()
+            } catch (e: Exception) {
+                Log.e(TAG, "Receipt Printing failed", e)
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Receipt Printing failed", e)
-        }
+        }.start()
     }
 
     private fun formatLine(left: String, right: String): String {
