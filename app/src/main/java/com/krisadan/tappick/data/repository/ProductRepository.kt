@@ -16,6 +16,7 @@ class ProductRepository private constructor(context: Context) {
     private val gson = Gson()
     private val appContext = context.applicationContext
     
+    @Volatile
     private var cachedProducts: MutableList<Product>? = null
 
     companion object {
@@ -24,28 +25,39 @@ class ProductRepository private constructor(context: Context) {
 
         fun getInstance(context: Context): ProductRepository {
             return INSTANCE ?: synchronized(this) {
-                INSTANCE ?: ProductRepository(context).also { INSTANCE = it }
+                INSTANCE ?: ProductRepository(context.applicationContext).also { INSTANCE = it }
             }
         }
     }
 
+    @Synchronized
     fun getProducts(): List<Product> {
-        if (cachedProducts == null) {
+        return cachedProducts ?: run {
             val json = prefs.getString("products", null)
-            cachedProducts = if (json != null) {
-                val type = object : TypeToken<MutableList<Product>>() {}.type
-                gson.fromJson(json, type)
+            val products: MutableList<Product> = if (json != null) {
+                try {
+                    val type = object : TypeToken<MutableList<Product>>() {}.type
+                    gson.fromJson(json, type) ?: mutableListOf()
+                } catch (e: Exception) {
+                    mutableListOf()
+                }
             } else {
-                getDefaultProducts().toMutableList()
+                mutableListOf()
             }
+            cachedProducts = products
+            products
         }
-        return cachedProducts ?: emptyList()
     }
 
+    @Synchronized
     fun saveProducts(products: List<Product>) {
         cachedProducts = products.toMutableList()
-        val json = gson.toJson(products)
-        prefs.edit().putString("products", json).apply()
+        try {
+            val json = gson.toJson(products)
+            prefs.edit().putString("products", json).apply()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     fun updateProduct(updatedProduct: Product) {
@@ -69,20 +81,16 @@ class ProductRepository private constructor(context: Context) {
         saveProducts(products)
     }
 
-    private fun getDefaultProducts(): List<Product> {
-        return emptyList()
-    }
-
     fun saveImageToInternalStorage(uri: Uri): String? {
         return try {
-            val inputStream = appContext.contentResolver.openInputStream(uri)
-            val bitmap = BitmapFactory.decodeStream(inputStream)
+            val inputStream = appContext.contentResolver.openInputStream(uri) ?: return null
+            val bitmap = BitmapFactory.decodeStream(inputStream) ?: return null
             val fileName = "product_${System.currentTimeMillis()}.jpg"
             val file = File(appContext.filesDir, fileName)
-            val outputStream = FileOutputStream(file)
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
-            outputStream.flush()
-            outputStream.close()
+            FileOutputStream(file).use { outputStream ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
+                outputStream.flush()
+            }
             file.absolutePath
         } catch (e: Exception) {
             e.printStackTrace()

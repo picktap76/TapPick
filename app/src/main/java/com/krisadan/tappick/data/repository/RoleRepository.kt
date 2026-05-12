@@ -10,6 +10,7 @@ class RoleRepository private constructor(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("tappick_roles_prefs", Context.MODE_PRIVATE)
     private val gson = Gson()
     
+    @Volatile
     private var cachedRoles: MutableList<Role>? = null
 
     companion object {
@@ -18,31 +19,43 @@ class RoleRepository private constructor(context: Context) {
 
         fun getInstance(context: Context): RoleRepository {
             return INSTANCE ?: synchronized(this) {
-                INSTANCE ?: RoleRepository(context).also { INSTANCE = it }
+                INSTANCE ?: RoleRepository(context.applicationContext).also { INSTANCE = it }
             }
         }
     }
 
+    @Synchronized
     fun getRoles(): List<Role> {
-        if (cachedRoles == null) {
+        return cachedRoles ?: run {
             val json = prefs.getString("roles", null)
-            if (json == null) {
-                val defaultRoles = listOf(
+            val roles: MutableList<Role> = if (json != null) {
+                try {
+                    val type = object : TypeToken<MutableList<Role>>() {}.type
+                    gson.fromJson(json, type) ?: mutableListOf()
+                } catch (e: Exception) {
+                    mutableListOf()
+                }
+            } else {
+                val defaultRoles = mutableListOf(
                     Role(id = "admin_role", name = "ผู้ดูแล", isDeletable = false, color = "#0055D4")
                 )
                 saveRoles(defaultRoles)
-                return defaultRoles
+                defaultRoles
             }
-            val type = object : TypeToken<MutableList<Role>>() {}.type
-            cachedRoles = gson.fromJson(json, type)
+            cachedRoles = roles
+            roles
         }
-        return cachedRoles ?: emptyList()
     }
 
+    @Synchronized
     fun saveRoles(roles: List<Role>) {
         cachedRoles = roles.toMutableList()
-        val json = gson.toJson(roles)
-        prefs.edit().putString("roles", json).apply()
+        try {
+            val json = gson.toJson(roles)
+            prefs.edit().putString("roles", json).apply()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     fun addRole(role: Role) {

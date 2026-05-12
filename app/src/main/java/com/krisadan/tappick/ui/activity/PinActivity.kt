@@ -24,46 +24,55 @@ class PinActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityPinBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        
-        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
+        try {
+            binding = ActivityPinBinding.inflate(layoutInflater)
+            setContentView(binding.root)
+            
+            nfcAdapter = try { NfcAdapter.getDefaultAdapter(this) } catch (e: Exception) { null }
 
-        memberRepository = MemberRepository.getInstance(this)
-        sessionManager = SessionManager.getInstance(this)
+            memberRepository = MemberRepository.getInstance(this)
+            sessionManager = SessionManager.getInstance(this)
 
-        Thread {
-            memberRepository.getMembers()
-        }.start()
-        
-        isLoginMode = callingActivity == null
+            isLoginMode = callingActivity == null
 
-        if (!isLoginMode) {
-            binding.btnSwitchToNfc.visibility = View.GONE
-        }
+            if (!isLoginMode) {
+                binding.btnSwitchToNfc.visibility = View.GONE
+            }
 
-        setupKeypad()
-        updatePinDots()
+            setupKeypad()
+            updatePinDots()
 
-        binding.btnSwitchToNfc.setOnClickListener {
-            val intent = Intent(this, LoginActivity::class.java)
-            startActivity(intent)
+            binding.btnSwitchToNfc.setOnClickListener {
+                val intent = Intent(this, LoginActivity::class.java)
+                startActivity(intent)
+                finish()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
             finish()
         }
     }
 
     override fun onResume() {
         super.onResume()
-        nfcAdapter?.enableReaderMode(this, { },
-            NfcAdapter.FLAG_READER_NFC_A or NfcAdapter.FLAG_READER_NFC_B or 
-            NfcAdapter.FLAG_READER_NFC_F or NfcAdapter.FLAG_READER_NFC_V or 
-            NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS or
-            NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK, null)
+        try {
+            nfcAdapter?.enableReaderMode(this, { },
+                NfcAdapter.FLAG_READER_NFC_A or NfcAdapter.FLAG_READER_NFC_B or 
+                NfcAdapter.FLAG_READER_NFC_F or NfcAdapter.FLAG_READER_NFC_V or 
+                NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS or
+                NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK, null)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     override fun onPause() {
         super.onPause()
-        nfcAdapter?.disableReaderMode(this)
+        try {
+            nfcAdapter?.disableReaderMode(this)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private fun setupKeypad() {
@@ -102,19 +111,26 @@ class PinActivity : AppCompatActivity() {
     }
 
     private fun handleLogin() {
-        val member = memberRepository.getMembers().find { it.pin == currentPin }
-        if (member != null) {
-            sessionManager.login(member.id)
-            ToastHelper.showToast(this, "ยินดีต้อนรับคุณ ${member.name}")
-            
-            val intent = Intent(this, MainActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-            finish()
-        } else {
+        try {
+            val members = memberRepository.getMembers()
+            val member = members.find { it.pin == currentPin }
+            if (member != null) {
+                sessionManager.login(member.id)
+                ToastHelper.showToast(this, "ยินดีต้อนรับคุณ ${member.name}")
+                
+                val intent = Intent(this, MainActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
+                finish()
+            } else {
+                currentPin = ""
+                updatePinDots()
+                ToastHelper.showToast(this, "รหัส PIN ไม่ถูกต้อง")
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
             currentPin = ""
             updatePinDots()
-            ToastHelper.showToast(this, "รหัส PIN ไม่ถูกต้อง")
         }
     }
 

@@ -10,6 +10,7 @@ class HistoryRepository private constructor(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("tappick_history_prefs", Context.MODE_PRIVATE)
     private val gson = Gson()
     
+    @Volatile
     private var cachedHistory: MutableList<HistoryEntry>? = null
 
     companion object {
@@ -18,22 +19,28 @@ class HistoryRepository private constructor(context: Context) {
 
         fun getInstance(context: Context): HistoryRepository {
             return INSTANCE ?: synchronized(this) {
-                INSTANCE ?: HistoryRepository(context).also { INSTANCE = it }
+                INSTANCE ?: HistoryRepository(context.applicationContext).also { INSTANCE = it }
             }
         }
     }
 
+    @Synchronized
     fun getHistory(): List<HistoryEntry> {
-        if (cachedHistory == null) {
+        return cachedHistory ?: run {
             val json = prefs.getString("history", null)
-            cachedHistory = if (json != null) {
-                val type = object : TypeToken<MutableList<HistoryEntry>>() {}.type
-                gson.fromJson(json, type)
+            val history: MutableList<HistoryEntry> = if (json != null) {
+                try {
+                    val type = object : TypeToken<MutableList<HistoryEntry>>() {}.type
+                    gson.fromJson(json, type) ?: mutableListOf()
+                } catch (e: Exception) {
+                    mutableListOf()
+                }
             } else {
                 mutableListOf()
             }
+            cachedHistory = history
+            history
         }
-        return cachedHistory ?: emptyList()
     }
 
     fun getUsageCounts(memberId: String, productConfigs: Map<String, com.krisadan.tappick.data.model.QuotaConfig>): Map<String, Int> {
@@ -54,7 +61,6 @@ class HistoryRepository private constructor(context: Context) {
         }
 
         val result = mutableMapOf<String, Int>()
-        
         val earliestStart = startTimes.values.minOrNull() ?: return emptyMap()
 
         history.forEach { entry ->
@@ -84,15 +90,15 @@ class HistoryRepository private constructor(context: Context) {
         saveHistory(history)
     }
 
+    @Synchronized
     private fun saveHistory(history: List<HistoryEntry>) {
         cachedHistory = history.toMutableList()
-        Thread {
-            try {
-                val json = gson.toJson(history)
-                prefs.edit().putString("history", json).apply()
-            } catch (e: Exception) {
-            }
-        }.start()
+        try {
+            val json = gson.toJson(history)
+            prefs.edit().putString("history", json).apply()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     fun updateMemberName(memberId: String, newName: String) {

@@ -10,6 +10,7 @@ class MemberRepository private constructor(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("tappick_members_prefs", Context.MODE_PRIVATE)
     private val gson = Gson()
     
+    @Volatile
     private var cachedMembers: MutableList<Member>? = null
 
     companion object {
@@ -18,28 +19,39 @@ class MemberRepository private constructor(context: Context) {
 
         fun getInstance(context: Context): MemberRepository {
             return INSTANCE ?: synchronized(this) {
-                INSTANCE ?: MemberRepository(context).also { INSTANCE = it }
+                INSTANCE ?: MemberRepository(context.applicationContext).also { INSTANCE = it }
             }
         }
     }
 
+    @Synchronized
     fun getMembers(): List<Member> {
-        if (cachedMembers == null) {
+        return cachedMembers ?: run {
             val json = prefs.getString("members", null)
-            cachedMembers = if (json != null) {
-                val type = object : TypeToken<MutableList<Member>>() {}.type
-                gson.fromJson(json, type)
+            val members: MutableList<Member> = if (json != null) {
+                try {
+                    val type = object : TypeToken<MutableList<Member>>() {}.type
+                    gson.fromJson(json, type) ?: mutableListOf()
+                } catch (e: Exception) {
+                    mutableListOf()
+                }
             } else {
                 mutableListOf()
             }
+            cachedMembers = members
+            members
         }
-        return cachedMembers ?: emptyList()
     }
 
+    @Synchronized
     fun saveMembers(members: List<Member>) {
         cachedMembers = members.toMutableList()
-        val json = gson.toJson(members)
-        prefs.edit().putString("members", json).apply()
+        try {
+            val json = gson.toJson(members)
+            prefs.edit().putString("members", json).apply()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     fun addMember(member: Member) {

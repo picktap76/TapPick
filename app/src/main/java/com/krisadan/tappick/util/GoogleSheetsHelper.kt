@@ -16,80 +16,61 @@ object GoogleSheetsHelper {
     private const val TAG = "GoogleSheetsHelper"
     private const val WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwykYzMilpfe70y1zNvn3NfShqZZmEkRdTrUCH-nReOMnifmrexyTqwppTWsPQkmKE7/exec"
     
-    private val client = OkHttpClient.Builder()
-        .followRedirects(true)
-        .followSslRedirects(true)
-        .build()
+    private val client by lazy {
+        OkHttpClient.Builder()
+            .followRedirects(true)
+            .followSslRedirects(true)
+            .build()
+    }
 
     private val thaiLocale = Locale("th", "TH")
     private val sdfDate = SimpleDateFormat("dd/MM/yy", thaiLocale)
     private val sdfTime = SimpleDateFormat("HH:mm", thaiLocale)
 
     fun uploadEntry(entry: HistoryEntry, roleName: String) {
-        val dateStr = sdfDate.format(Date(entry.timestamp))
-        val timeStr = sdfTime.format(Date(entry.timestamp))
-
-        val rows = entry.items.map { item ->
-            listOf(
-                dateStr,
-                timeStr,
-                entry.memberName,
-                roleName,
-                item.productName,
-                item.quantity.toString()
-            )
-        }
-
-        val jsonBody = JsonObject().apply {
-            val rowsArray = JsonArray()
-            rows.forEach { row ->
-                val rowArray = JsonArray()
-                row.forEach { rowArray.add(it) }
-                rowsArray.add(rowArray)
-            }
-            add("rows", rowsArray)
-        }
-
-        val body = jsonBody.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
-        val request = Request.Builder()
-            .url(WEB_APP_URL)
-            .post(body)
-            .build()
-
-        Log.d(TAG, "Starting upload to Google Sheets...")
-
         Thread {
             try {
-                client.newCall(request).execute().use { response ->
-                    val responseBody = response.body?.string()
-                    if (response.isSuccessful) {
-                        Log.d(TAG, "Upload Successful: $responseBody")
-                    } else {
-                        Log.e(TAG, "Upload Failed. Code: ${response.code}, Body: $responseBody")
+                val dateStr = sdfDate.format(Date(entry.timestamp))
+                val timeStr = sdfTime.format(Date(entry.timestamp))
+
+                val rowsArray = JsonArray()
+                entry.items.forEach { item ->
+                    val rowArray = JsonArray().apply {
+                        add(dateStr)
+                        add(timeStr)
+                        add(entry.memberName)
+                        add(roleName)
+                        add(item.productName)
+                        add(item.quantity.toString())
                     }
+                    rowsArray.add(rowArray)
+                }
+
+                val jsonBody = JsonObject().apply { add("rows", rowsArray) }
+                val body = jsonBody.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
+                val request = Request.Builder().url(WEB_APP_URL).post(body).build()
+
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) Log.e(TAG, "Upload Failed: ${response.code}")
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Network Error: ${e.message}", e)
+                Log.e(TAG, "Network Error: ${e.message}")
             }
         }.start()
     }
 
     fun requestPinReset(email: String, memberName: String, pin: String, onResult: (Boolean) -> Unit) {
-        val jsonBody = JsonObject().apply {
-            addProperty("action", "forgot_pin")
-            addProperty("email", email)
-            addProperty("name", memberName)
-            addProperty("pin", pin)
-        }
-
-        val body = jsonBody.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
-        val request = Request.Builder()
-            .url(WEB_APP_URL)
-            .post(body)
-            .build()
-
         Thread {
             try {
+                val jsonBody = JsonObject().apply {
+                    addProperty("action", "forgot_pin")
+                    addProperty("email", email)
+                    addProperty("name", memberName)
+                    addProperty("pin", pin)
+                }
+                val body = jsonBody.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
+                val request = Request.Builder().url(WEB_APP_URL).post(body).build()
+
                 client.newCall(request).execute().use { response ->
                     onResult(response.isSuccessful)
                 }

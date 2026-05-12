@@ -14,7 +14,7 @@ class SessionManager private constructor(context: Context) {
 
         fun getInstance(context: Context): SessionManager {
             return INSTANCE ?: synchronized(this) {
-                INSTANCE ?: SessionManager(context).also { INSTANCE = it }
+                INSTANCE ?: SessionManager(context.applicationContext).also { INSTANCE = it }
             }
         }
     }

@@ -29,12 +29,11 @@ class SunmiPrinterHelper private constructor(private val context: Context) {
     }
 
     init {
-        setLog(true)
-        initPrinter()
-    }
-
-    fun setLog(enable: Boolean) {
-        PrinterSdk.getInstance().log(enable, TAG)
+        try {
+            initPrinter()
+        } catch (e: Exception) {
+            Log.e(TAG, "Init error", e)
+        }
     }
 
     private fun initPrinter() {
@@ -42,16 +41,10 @@ class SunmiPrinterHelper private constructor(private val context: Context) {
             PrinterSdk.getInstance().getPrinter(context, object : PrinterSdk.PrinterListen {
                 override fun onDefPrinter(printer: Printer?) {
                     this@SunmiPrinterHelper.printer = printer
-                    if (printer != null) {
-                        Log.d(TAG, "Default printer initialized")
-                    } else {
-                        Log.e(TAG, "No default printer found")
-                    }
                 }
                 override fun onPrinters(printers: MutableList<Printer>?) {
                     if (printer == null && !printers.isNullOrEmpty()) {
                         printer = printers[0]
-                        Log.d(TAG, "Printer selected from list")
                     }
                 }
             })
@@ -61,19 +54,11 @@ class SunmiPrinterHelper private constructor(private val context: Context) {
     }
 
     fun isPrinterReady(): Boolean {
-        val printer = this.printer
-        if (printer == null) {
-            initPrinter()
-            return false
-        }
+        val printer = this.printer ?: return false
         return try {
             val status = printer.queryApi().status
-            val statusName = status.name
-            Log.d(TAG, "Printer status check: $statusName")
-            statusName == "NORMAL" || statusName == "READY"
+            status.name == "NORMAL" || status.name == "READY"
         } catch (e: Exception) {
-            Log.e(TAG, "Printer status check failed", e)
-            initPrinter() 
             false
         }
     }
@@ -90,69 +75,42 @@ class SunmiPrinterHelper private constructor(private val context: Context) {
         return try {
             printer?.lineApi()
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to get LineApi", e)
             null
         }
-    }
-
-    fun getLineApi(): LineApi? {
-        if (!isPrinterReady()) {
-            Log.e(TAG, "Printer is not ready (Check paper, cover or connection)")
-            return null
-        }
-        return getLineApiInternal()
     }
 
     fun printReceipt(title: String, date: String, time: String, userName: String, items: List<com.krisadan.tappick.data.model.TransactionItem>) {
         Thread {
             try {
-                if (!isPrinterReady()) {
-                    Log.e(TAG, "Printer not ready for receipt")
-                    return@Thread
-                }
-
+                if (!isPrinterReady()) return@Thread
                 val lineApi = getLineApiInternal() ?: return@Thread
                 
                 lineApi.apply {
                     val sep = "------------------------------"
-
                     initLine(BaseStyle.getStyle().setAlign(Align.CENTER))
                     printText(title, TextStyle.getStyle().setTextSize(32).enableBold(true))
-
                     initLine(BaseStyle.getStyle().setAlign(Align.LEFT))
                     printText(sep, TextStyle.getStyle().setTextSize(24))
-
-                    initLine(BaseStyle.getStyle().setAlign(Align.LEFT))
                     printText(formatLine("วันที่:", date), TextStyle.getStyle().setTextSize(24))
                     printText(formatLine("เวลา:", time), TextStyle.getStyle().setTextSize(24))
                     printText(formatLine("ผู้ใช้:", userName), TextStyle.getStyle().setTextSize(24))
-
                     printText(sep, TextStyle.getStyle().setTextSize(24))
-
                     printText("รายการเบิก:", TextStyle.getStyle().setTextSize(24).enableBold(true))
 
                     for (item in items) {
                         initLine(BaseStyle.getStyle().setAlign(Align.LEFT))
-                        val rawName = item.productName
-                        val itemName = if (getVisualWidth(rawName) > 18) {
-                            truncateThai(rawName, 15) + "..."
+                        val itemName = if (getVisualWidth(item.productName) > 18) {
+                            truncateThai(item.productName, 15) + "..."
                         } else {
-                            rawName
+                            item.productName
                         }
-                        val line = formatLine("- $itemName", "x${item.quantity}")
-                        printText(line, TextStyle.getStyle().setTextSize(24))
+                        printText(formatLine("- $itemName", "x${item.quantity}"), TextStyle.getStyle().setTextSize(24))
                     }
 
-                    initLine(BaseStyle.getStyle().setAlign(Align.LEFT))
                     printText(sep, TextStyle.getStyle().setTextSize(24))
-
                     initLine(BaseStyle.getStyle().setAlign(Align.CENTER))
                     printText("ขอบคุณที่ใช้บริการ", TextStyle.getStyle().setTextSize(24))
-
-                    repeat(1) {
-                        printText(" \n", TextStyle.getStyle())
-                    }
-
+                    repeat(1) { printText(" \n", TextStyle.getStyle()) }
                     autoOut()
                 }
             } catch (e: Exception) {
@@ -162,15 +120,8 @@ class SunmiPrinterHelper private constructor(private val context: Context) {
     }
 
     private fun formatLine(left: String, right: String): String {
-        val leftWidth = getVisualWidth(left)
-        val rightWidth = getVisualWidth(right)
-        val spaceCount = MAX_LINE_WIDTH - (leftWidth + rightWidth)
-        
-        return if (spaceCount > 0) {
-            left + " ".repeat(spaceCount) + right
-        } else {
-            "$left $right"
-        }
+        val spaceCount = MAX_LINE_WIDTH - (getVisualWidth(left) + getVisualWidth(right))
+        return if (spaceCount > 0) left + " ".repeat(spaceCount) + right else "$left $right"
     }
 
     private fun getVisualWidth(text: String): Int {
@@ -182,34 +133,11 @@ class SunmiPrinterHelper private constructor(private val context: Context) {
         var currentWidth = 0
         val result = StringBuilder()
         val thaiCombiningChars = Regex("[\u0E31\u0E34-\u0E3A\u0E47-\u0E4E]")
-        
         for (char in text) {
-            if (!char.toString().matches(thaiCombiningChars)) {
-                currentWidth++
-            }
+            if (!char.toString().matches(thaiCombiningChars)) currentWidth++
             if (currentWidth > targetWidth) break
             result.append(char)
         }
         return result.toString()
-    }
-    
-    fun lineWrap(lines: Int) {
-        val lineApi = getLineApi() ?: return
-        try {
-            repeat(lines) {
-                lineApi.printText(" \n", TextStyle.getStyle())
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Line wrap failed", e)
-        }
-    }
-
-    fun cutPaper() {
-        lineWrap(3)
-    }
-    
-    fun release() {
-        PrinterSdk.getInstance().destroy()
-        printer = null
     }
 }
