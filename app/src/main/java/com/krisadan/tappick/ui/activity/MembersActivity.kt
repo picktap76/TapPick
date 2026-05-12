@@ -234,6 +234,16 @@ class MembersActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
                 }
 
                 val oldName = member.name
+                val oldRoleId = member.roleId
+                
+                if (oldRoleId == "admin_role" && roleId != "admin_role") {
+                    val adminCount = memberRepository.getMembers().count { it.roleId == "admin_role" }
+                    if (adminCount <= 1) {
+                        ToastHelper.showToast(this, "ไม่สามารถเปลี่ยนระดับได้ ต้องมีผู้ดูแลระบบอย่างน้อย 1 คน")
+                        return@setOnClickListener
+                    }
+                }
+
                 member.name = name
                 member.email = if (email.isEmpty()) null else email
                 member.roleId = roleId
@@ -264,6 +274,14 @@ class MembersActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
     }
 
     private fun showDeleteConfirmDialog(member: Member) {
+        if (member.roleId == "admin_role") {
+            val adminCount = memberRepository.getMembers().count { it.roleId == "admin_role" }
+            if (adminCount <= 1) {
+                ToastHelper.showToast(this, "ไม่สามารถลบได้ ต้องมีผู้ดูแลระบบอย่างน้อย 1 คน")
+                return
+            }
+        }
+
         AlertDialog.Builder(this)
             .setTitle("ยืนยันการลบ")
             .setMessage("คุณต้องการลบสมาชิก \"${member.name}\" ใช่หรือไม่?")

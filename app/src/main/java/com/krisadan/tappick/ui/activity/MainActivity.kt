@@ -140,18 +140,21 @@ class MainActivity : AppCompatActivity() {
                 }
             } else {
                 val memberId = effectiveMember.id
+                val productConfigs = filteredProducts.associate { 
+                    it.id to (role.getQuotaConfigsMap()[it.id] ?: com.krisadan.tappick.data.model.QuotaConfig())
+                }
+                
+                val usageCounts = historyRepository.getUsageCounts(memberId, productConfigs)
+                
                 for (product in filteredProducts) {
                     val maxQty = role.getPermissionsMap()[product.id] ?: 0
-                    val config = role.getQuotaConfigsMap()[product.id] ?: com.krisadan.tappick.data.model.QuotaConfig()
-                    val sinceTs = historyRepository.getStartTimeForConfig(config)
-                    val usedQty = historyRepository.getUsageCountSince(memberId, product.id, sinceTs)
+                    val usedQty = usageCounts[product.id] ?: 0
                     remainingCounts[product.id] = (maxQty - usedQty).coerceAtLeast(0)
                 }
             }
         }
         
-        adapter.updateData(filteredProducts)
-        adapter.updateRemainingCounts(remainingCounts)
+        adapter.setData(filteredProducts, remainingCounts)
     }
 
     private fun getCurrentMember(): Member? {

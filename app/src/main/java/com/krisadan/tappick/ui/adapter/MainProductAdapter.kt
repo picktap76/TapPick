@@ -194,4 +194,10 @@ class MainProductAdapter(private var products: List<Product>) :
         this.remainingCounts = counts
         notifyDataSetChanged()
     }
+
+    fun setData(newProducts: List<Product>, newRemainingCounts: Map<String, Int?>) {
+        this.products = newProducts
+        this.remainingCounts = newRemainingCounts
+        notifyDataSetChanged()
+    }
 }

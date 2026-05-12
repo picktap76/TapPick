@@ -36,24 +36,43 @@ class HistoryRepository private constructor(context: Context) {
         return cachedHistory ?: emptyList()
     }
 
+    fun getUsageCounts(memberId: String, productConfigs: Map<String, com.krisadan.tappick.data.model.QuotaConfig>): Map<String, Int> {
+        val history = getHistory()
+        if (history.isEmpty()) return emptyMap()
+
+        val now = System.currentTimeMillis()
+        val startTimes = productConfigs.mapValues { (_, config) ->
+            val intervalMillis = when (config.intervalUnit) {
+                com.krisadan.tappick.data.model.QuotaUnit.MINUTE -> config.intervalValue * 60 * 1000L
+                com.krisadan.tappick.data.model.QuotaUnit.HOUR -> config.intervalValue * 60 * 60 * 1000L
+                com.krisadan.tappick.data.model.QuotaUnit.DAY -> config.intervalValue * 24 * 60 * 60 * 1000L
+                com.krisadan.tappick.data.model.QuotaUnit.WEEK -> config.intervalValue * 7 * 24 * 60 * 60 * 1000L
+                com.krisadan.tappick.data.model.QuotaUnit.MONTH -> config.intervalValue * 30 * 24 * 60 * 60 * 1000L
+                com.krisadan.tappick.data.model.QuotaUnit.YEAR -> config.intervalValue * 365 * 24 * 60 * 60 * 1000L
+            }
+            now - intervalMillis
+        }
+
+        val result = mutableMapOf<String, Int>()
+        val memberHistory = history.filter { it.memberId == memberId }
+
+        memberHistory.forEach { entry ->
+            entry.items.forEach { item ->
+                val startTime = startTimes[item.productId]
+                if (startTime != null && entry.timestamp >= startTime) {
+                    result[item.productId] = (result[item.productId] ?: 0) + item.quantity
+                }
+            }
+        }
+        return result
+    }
+
     fun getUsageCountSince(memberId: String, productId: String, sinceTimestamp: Long): Int {
         return getHistory()
             .filter { it.memberId == memberId && it.timestamp >= sinceTimestamp }
             .flatMap { it.items }
             .filter { it.productId == productId }
             .sumOf { it.quantity }
-    }
-
-    fun getStartTimeForConfig(config: com.krisadan.tappick.data.model.QuotaConfig): Long {
-        val intervalMillis = when (config.intervalUnit) {
-            com.krisadan.tappick.data.model.QuotaUnit.MINUTE -> config.intervalValue * 60 * 1000L
-            com.krisadan.tappick.data.model.QuotaUnit.HOUR -> config.intervalValue * 60 * 60 * 1000L
-            com.krisadan.tappick.data.model.QuotaUnit.DAY -> config.intervalValue * 24 * 60 * 60 * 1000L
-            com.krisadan.tappick.data.model.QuotaUnit.WEEK -> config.intervalValue * 7 * 24 * 60 * 60 * 1000L
-            com.krisadan.tappick.data.model.QuotaUnit.MONTH -> config.intervalValue * 30 * 24 * 60 * 60 * 1000L
-            com.krisadan.tappick.data.model.QuotaUnit.YEAR -> config.intervalValue * 365 * 24 * 60 * 60 * 1000L
-        }
-        return System.currentTimeMillis() - intervalMillis
     }
 
     fun addEntry(entry: HistoryEntry) {
@@ -64,8 +83,13 @@ class HistoryRepository private constructor(context: Context) {
 
     private fun saveHistory(history: List<HistoryEntry>) {
         cachedHistory = history.toMutableList()
-        val json = gson.toJson(history)
-        prefs.edit().putString("history", json).apply()
+        Thread {
+            try {
+                val json = gson.toJson(history)
+                prefs.edit().putString("history", json).apply()
+            } catch (e: Exception) {
+            }
+        }.start()
     }
 
     fun updateMemberName(memberId: String, newName: String) {
